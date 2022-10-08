@@ -4,4 +4,4 @@ from django.shortcuts import render, HttpResponse
 
 
 def index(request):
-    return HttpResponse("TECHIES.JOBS DEVELOPMENT AREA")
+    return HttpResponse("WELCOME TO TECHIES.JOBS DEVELOPMENT AREA")
