@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-1%2d7q2z(60ep0yu@+cx-r8@c4y8$!j130l-lc=xis9-#8qp_*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["crypticwisdom.pythonanywhere.com", "127.0.0.1"]
+ALLOWED_HOSTS = ["crypticwisdom.pythonanywhere.com", "127.0.0.1", "localhost"]
 
 
 # Application definition
@@ -80,6 +80,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# db.sqlite3 Local database settings
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
@@ -87,17 +88,29 @@ WSGI_APPLICATION = 'core.wsgi.application'
 #     }
 # }
 
+# MySQL PythonAnywhere database settings
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'crypticwisdom$techies_jobs',
+#         'USER': 'crypticwisdom',
+#         'HOST': 'crypticwisdom.mysql.pythonanywhere-services.com',
+#         'PORT': '3306',
+#         'PASSWORD': 'iamherenow',
+#     }
+# }
+
+# MySQL Local database settings
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'crypticwisdom$techies_jobs',
-        'USER': 'crypticwisdom',
-        'HOST': 'crypticwisdom.mysql.pythonanywhere-services.com',
+        'NAME': 'techies_db',
+        'USER': 'root',
+        'HOST': 'localhost',
         'PORT': '3306',
         'PASSWORD': 'iamherenow',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
