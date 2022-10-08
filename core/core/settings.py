@@ -80,10 +80,21 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'crypticwisdom$techies_jobs',
+        'USER': 'crypticwisdom',
+        'HOST': 'crypticwisdom.mysql.pythonanywhere-services.com',
+        'PORT': '3306',
+        'PASSWORD': 'iamherenow',
     }
 }
 
@@ -159,5 +170,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://localhost:8000",
     "http://127.0.0.1:9000",
+    "http://127.0.0.1",
+    "127.0.0.1"
     'https://techies-jobs.vercel.app'
 ]
