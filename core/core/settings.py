@@ -89,28 +89,28 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # }
 
 # MySQL PythonAnywhere database settings
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'crypticwisdom$techies_jobs',
-#         'USER': 'crypticwisdom',
-#         'HOST': 'crypticwisdom.mysql.pythonanywhere-services.com',
-#         'PORT': '3306',
-#         'PASSWORD': 'iamherenow',
-#     }
-# }
-
-# MySQL Local database settings
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'techies_db',
-        'USER': 'root',
-        'HOST': 'localhost',
+        'NAME': 'crypticwisdom$techies_jobs',
+        'USER': 'crypticwisdom',
+        'HOST': 'crypticwisdom.mysql.pythonanywhere-services.com',
         'PORT': '3306',
         'PASSWORD': 'iamherenow',
     }
 }
+
+# MySQL Local database settings
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'techies_db',
+#         'USER': 'root',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#         'PASSWORD': 'iamherenow',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
