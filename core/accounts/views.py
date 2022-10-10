@@ -29,7 +29,7 @@ class ManualSignUpView(APIView):
             username, email = request.data.get("username", None), request.data.get("email", None)
             password = request.data.get("password", None)
             password_confirm = request.data.get("password_confirm", None)
-            terms_and_conditions = request.data.get("terms_and_conditions", None)
+            # terms_and_conditions = request.data.get("terms_and_conditions", None)
 
             if email is not None:
                 if validate_email(email) is False:
@@ -46,22 +46,15 @@ class ManualSignUpView(APIView):
             if password_confirm is None:
                 return Response({"detail": "Confirm Password field is required"}, status=HTTP_400_BAD_REQUEST)
 
-            if terms_and_conditions is None:
-                return Response({"detail": "User needs to accept our terms and conditions"},
-                                status=HTTP_400_BAD_REQUEST)
+            # if terms_and_conditions is None:
+            #     return Response({"detail": "User needs to accept our terms and conditions"},
+            #                     status=HTTP_400_BAD_REQUEST)
 
             if password != password_confirm:
                 return Response({"detail": "Passwords does not match"}, status=HTTP_400_BAD_REQUEST)
 
             user = User.objects.create_user(username=username, email=email, terms_and_conditions=True,
                                             signup_type="manual", password=password)
-            #
-            # elif signup_type == "social":
-            #
-            #     if username is None:
-            #         username = f"techie-{secrets.token_urlsafe(5)}"
-            #
-            #     user = User.objects.create(username=username, terms_and_conditions=True, email=email)
 
             if user is not None:
                 # Keep things simple, log user in after signup.
