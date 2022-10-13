@@ -1,14 +1,15 @@
 from django.shortcuts import render, HttpResponse
 import random
 import secrets
-
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+
+from .serializers import UserSerializer
 from .utils import validate_email
-from .models import User
+from techie.models import User, TechieProfile
 
 
 # Create your views here.
@@ -54,8 +55,8 @@ class ManualSignUpView(APIView):
                 return Response({"detail": "Passwords does not match"}, status=HTTP_400_BAD_REQUEST)
 
             user = User.objects.create_user(username=username, email=email, terms_and_conditions=True,
-                                            signup_type="manual", password=password)
-
+                                            signup_type="manual", user_role='techie', password=password)
+            techie_instance = TechieProfile.objects.create(user=user, owner_user_id=user.id)
             if user is not None:
                 # Keep things simple, log user in after signup.
                 return Response({"detail": "User creation was successful and logged in",
@@ -103,10 +104,13 @@ class ManualLoginView(APIView):
             if user is not None:
                 user.login_type = "manual"
                 user.save()
+
+                serialised = UserSerializer(user, many=False).data
                 return Response({"detail": "User has been successfully Authenticated",
                                  "data": {
                                      "access_token": f"{AccessToken.for_user(user)}",
-                                     "refresh_token": f"{RefreshToken.for_user(user)}"
+                                     "refresh_token": f"{RefreshToken.for_user(user)}",
+                                     "user_details": serialised
                                  }}, status=HTTP_200_OK)
             else:
                 return Response({"detail": "Failed to Authenticate user"}, status=HTTP_400_BAD_REQUEST)

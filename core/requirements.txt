@@ -12,6 +12,7 @@ gunicorn==20.1.0
 idna==3.4
 mysql==0.0.3
 mysqlclient==2.1.1
+Pillow==9.2.0
 psycopg2==2.9.4
 PyJWT==2.5.0
 python-decouple==3.6
