@@ -56,7 +56,7 @@ class ManualSignUpView(APIView):
 
             user = User.objects.create_user(username=username, email=email, terms_and_conditions=True,
                                             signup_type="manual", user_role='techie', password=password)
-            techie_instance = TechieProfile.objects.create(user=user, owner_user_id=user.id)
+            techie_instance = TechieProfile.objects.create(user=user, slug=secrets.token_urlsafe(15), owner_user_id=user.id)
             if user is not None:
                 # Keep things simple, log user in after signup.
                 return Response({"detail": "User creation was successful and logged in",
@@ -95,7 +95,6 @@ class ManualLoginView(APIView):
                 return Response({"detail": "Password field is required"}, status=HTTP_400_BAD_REQUEST)
 
             user = authenticate(request, email=email, password=password)
-
             # elif login_type == "social":
                 # if username is None:
                 #     username = f"techie-{secrets.token_urlsafe(5)}"
@@ -110,7 +109,8 @@ class ManualLoginView(APIView):
                                  "data": {
                                      "access_token": f"{AccessToken.for_user(user)}",
                                      "refresh_token": f"{RefreshToken.for_user(user)}",
-                                     "user_details": serialised
+                                     "user_details": serialised,
+
                                  }}, status=HTTP_200_OK)
             else:
                 return Response({"detail": "Failed to Authenticate user"}, status=HTTP_400_BAD_REQUEST)
