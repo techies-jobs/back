@@ -39,14 +39,28 @@ class TechieProfileUpdateView(APIView):
 
     def post(self, request):
         try:
-            print(request.user)
+            user = User.objects.get(id=request.user.id)
+            techie_instance = TechieProfile.objects.get(user=user)
+
+            public = request.data.get("public", None)
+            available_for_offer = request.data.get("available_for_offer", None)
+
+            if public == "on":
+                techie_instance.public = True
+            elif public == "off":
+                techie_instance.public = False
+
+            if available_for_offer == "true":
+                techie_instance.available_for_offer = True
+            elif available_for_offer == "false":
+                techie_instance.available_for_offer = False
+        # end of Public and Available for offer section
+
             first_name = request.data.get("first_name", None)
             last_name = request.data.get("last_name", None)
             headline = request.data.get("head_line", None)
             bio = request.data.get("bio", None)
 
-            user = User.objects.get(id=request.user.id)
-            techie_instance = TechieProfile.objects.get(user=user)
             if first_name is not None:
                 user.first_name = first_name
 
@@ -102,7 +116,7 @@ class TechieProfileUpdateView(APIView):
             linkedin = request.data.get("linkedin", None)
             if linkedin is not None:
                 techie_instance.socials.update({"linkedin": linkedin})
-
+            print(techie_instance.socials)
             #
             facebook = request.data.get("facebook", None)
             if facebook is not None:
@@ -185,7 +199,7 @@ class GetTechieByUserNameView(APIView):
             serialized_data = TechieProfileSerializer(techie_profile, many=False).data
 
             return Response({"detail": f"Success",
-                             "data": serialized_data}, status=status.HTTP_400_BAD_REQUEST)
+                             "data": serialized_data}, status=status.HTTP_200_OK)
 
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -204,4 +218,14 @@ class GetAllVerifiedTechiesView(APIView):
 
 
 class GetAParticularVerifiedTechie(APIView):
-    ...
+    permission_classes = []
+
+    def get(self, request):
+        try:
+
+            techies_profile = TechieProfile.objects.all().filter(verified=True)
+            serialized_data = GetAllVerifiedTechieSerializer(techies_profile, many=True).data
+            return Response({"detail": "Success", "data": serialized_data}, status=status.HTTP_400_BAD_REQUEST)
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
