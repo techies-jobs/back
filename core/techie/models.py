@@ -24,17 +24,24 @@ JOB_TYPE = (
 )
 
 
+#    Django Model Relationships: https://youtu.be/2KqhBkMv7aM
 class Skills(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
 
+    def __str__(self):
+        return f"{self.name}"
+
 
 class TechieProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    """
+    when this Techie switches to a Recruiter, the 'user' field should be SET_TO_NULL. Same thing applies to RecruiterProfile
+    """
+    user = models.OneToOneField(User, null=True, blank=True, on_delete=models.CASCADE)
+    slug = models.SlugField(max_length=100, null=True, blank=True)
     owner_user_id = models.CharField(max_length=100, default="", null=True, blank=True)
     verified = models.BooleanField(default=False)
     headline_role = models.CharField(max_length=100, blank=True, null=True)
     experience = models.CharField(max_length=100, blank=True, null=True)
-    expectation = models.JSONField(null=True, blank=True)
     notice_period = models.CharField(max_length=100, blank=True, null=True)
     job_location = models.CharField(max_length=100, blank=True, null=True, choices=JOB_LOCATION)
     job_type = models.CharField(max_length=100, blank=True, null=True, choices=JOB_TYPE)
@@ -42,15 +49,34 @@ class TechieProfile(models.Model):
     public = models.BooleanField(default=True)
     available_for_offer = models.BooleanField(default=True)
     socials = models.JSONField(null=True, blank=True)
-    up_votes = models.IntegerField(default=0, null=True, blank=True)
+    # up_votes = models.ManyToManyField(UpVotes)
     skills = models.ManyToManyField(Skills, help_text="example: backend developer, HTML, Rust, Python", blank=True)
     is_available = models.BooleanField(default=True)
     companies = models.ManyToManyField(Company, help_text="Companies techies has worked with")
     # hired_by =
-    # offer = what this techie will offer
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.user.email} - {self.verified}"
 
+
+class Responsibility(models.Model):
+    name = models.CharField(max_length=300, null=True, blank=True)
+    techie_profile = models.ForeignKey(TechieProfile, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = 'Responsibilities'
+
+    def __str__(self):
+        return f"{self.name} - {self.techie_profile.user.username}"
+
+
+class Expectation(models.Model):
+    expectation_value = models.CharField(max_length=300, null=True, blank=True,
+                                         help_text="What a techie should expect from any interested company."
+                                                   "Example: $800 - $3000/month, Flexible PTO")
+    techie_profile = models.ForeignKey(TechieProfile, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.expectation_value} - {self.techie_profile.user.username}"

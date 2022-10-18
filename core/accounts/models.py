@@ -25,7 +25,6 @@ class User(AbstractUser):
     login_type = models.CharField(max_length=12, choices=AUTH_CHOICES, null=True, blank=True)
     user_role = models.CharField(max_length=100, null=True, blank=True, choices=USER_ROLE, default='techie')
     image = models.ImageField(blank=True, null=True)
-    headline_role = models.CharField(max_length=100, blank=True, null=True)
     location = models.CharField(max_length=250, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
 
@@ -51,6 +50,7 @@ class User(AbstractUser):
 
 class Company(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
+    # creator = models.ForeignKey(RecruiterProfile, on_delete=models.SET_NULL)
     image = models.ImageField(blank=True, null=True)
     headline = models.CharField(max_length=100, blank=True, null=True)
     about = models.TextField(blank=True, null=True)
