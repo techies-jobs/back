@@ -34,7 +34,8 @@ class TechieProfileSerializer(serializers.ModelSerializer):
 
 
 class GetAllVerifiedTechieSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
     class Meta:
         model = TechieProfile
-        fields = ['user', 'verified', 'headline_role']
-        # depth = 1
+        fields = ['user', 'slug', 'verified', 'headline_role']
