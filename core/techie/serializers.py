@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TechieProfile, Responsibility, Expectation
+from .models import TechieProfile, Responsibility, Expectation, Skills
 from accounts.serializers import UserSerializer
 
 
@@ -39,3 +39,9 @@ class GetAllVerifiedTechieSerializer(serializers.ModelSerializer):
     class Meta:
         model = TechieProfile
         fields = ['user', 'slug', 'verified', 'headline_role']
+
+
+class SkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skills
+        fields = "__all__"

@@ -1,11 +1,12 @@
 from django.shortcuts import render
+from django.db.models import Q
 from .models import TechieProfile, Skills
 from accounts.models import User
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from .serializers import UserSerializer, TechieProfileSerializer, GetAllVerifiedTechieSerializer
+from .serializers import UserSerializer, TechieProfileSerializer, GetAllVerifiedTechieSerializer, SkillSerializer
 from .models import Expectation, Responsibility
 import ast
 # Create your views here.
@@ -229,3 +230,33 @@ class GetAParticularVerifiedTechie(APIView):
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class GetAllSkillsView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        try:
+            query = request.data.get("query", None)
+            print(request.GET, request.data)
+            if query is not None:
+                query = Q(name__icontains=query)
+            skills = Skills.objects.all().filter(name=query)
+            return Response({"detail": f"success", "data": SkillSerializer(skills, many=True).data},
+                            status=status.HTTP_200_OK)
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetAllCompaniesView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        try:
+            query = request.data.get("query", None)
+            if query is not None:
+                query = Q(name__contains=query)
+            skills = Skills.objects.all().filter(name=query)
+            return Response({"detail": f"success", "data": SkillSerializer(skills, many=True).data},
+                            status=status.HTTP_200_OK)
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)

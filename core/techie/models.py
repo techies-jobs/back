@@ -48,6 +48,7 @@ class TechieProfile(models.Model):
     can_relocate = models.BooleanField(default=False)
     public = models.BooleanField(default=True)
     available_for_offer = models.BooleanField(default=True)
+    is_completed = models.BooleanField(default=False)
     socials = models.JSONField(null=True, blank=True)
     # up_votes = models.ManyToManyField(UpVotes)
     skills = models.ManyToManyField(Skills, help_text="example: backend developer, HTML, Rust, Python", blank=True)

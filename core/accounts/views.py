@@ -41,6 +41,9 @@ class ManualSignUpView(APIView):
             if username is None:
                 return Response({"detail": "Username field is required"}, status=HTTP_400_BAD_REQUEST)
 
+            if username.split(' ') is True:
+                return Response({"detail": "Username should not contain white spaces"}, status=HTTP_400_BAD_REQUEST)
+
             if password is None:
                 return Response({"detail": "Password field is required"}, status=HTTP_400_BAD_REQUEST)
 
