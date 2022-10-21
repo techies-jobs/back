@@ -59,6 +59,7 @@ class TechieProfileUpdateView(APIView):
 
             first_name = request.data.get("first_name", None)
             last_name = request.data.get("last_name", None)
+            username = request.data.get("username", None)
             headline = request.data.get("head_line", None)
             bio = request.data.get("bio", None)
 
@@ -67,6 +68,11 @@ class TechieProfileUpdateView(APIView):
 
             if last_name is not None:
                 user.last_name = last_name
+
+            if username is not None:
+                if User.objects.filter(username__iexact=username).exits():
+                    return Response({"detail": "Username not available"}, status=status.HTTP_400_BAD_REQUEST)
+                user.username = username
 
             if headline is not None:
                 techie_instance.headline_role = headline
@@ -101,7 +107,7 @@ class TechieProfileUpdateView(APIView):
             elif job_type is not None and job_type not in ['freelance', 'full-time', 'part-time', 'contract', 'internship']:
                 return Response({"detail": f"Expected one of these values (freelance, full-time, "
                                            f"part-time, contract, internship), got invalid value "
-                                           f"'{job_location}'"})
+                                           f"'{job_type}'"})
             # Completed Location
 
             #  Check to see if Techie's Social field is 'None', the change value to an Empty JSON format.
@@ -177,31 +183,16 @@ class TechieProfileUpdateView(APIView):
                             name=item,
                             techie_profile=techie_instance
                         )
+
             user.save()
             techie_instance.save()
+            if user.first_name and user.last_name and user.username and user.bio \
+                    and len(user.location.split(',')) == 2 and techie_instance.socials['linkedin']:
+                techie_instance.is_completed = True
+
+            techie_instance.save()
+
             return Response({"detail": f"Record has been updated successfully"}, status=status.HTTP_200_OK)
-        except (Exception, ) as err:
-            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class GetTechieByUserNameView(APIView):
-    permission_classes = []
-
-    def get(self, request, username):
-        try:
-            if username is None:
-                return Response({"detail": f"Please pass in username"}, status=status.HTTP_400_BAD_REQUEST)
-
-            user = User.objects.filter(username=username)
-            if not user:
-                return Response({"detail": f"No Techie with username '{username}'"}, status=status.HTTP_400_BAD_REQUEST)
-
-            techie_profile = TechieProfile.objects.get(user__username=username)
-            serialized_data = TechieProfileSerializer(techie_profile, many=False).data
-
-            return Response({"detail": f"Success",
-                             "data": serialized_data}, status=status.HTTP_200_OK)
-
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -236,8 +227,9 @@ class GetAllSkillsView(APIView):
 
     def get(self, request):
         try:
-            query = request.data.get("query", None)
-            print(request.GET, request.data)
+            print(request.GET)
+            query = request.GET.get("query", None)
+
             if query is not None:
                 query = Q(name__icontains=query)
             skills = Skills.objects.all().filter(name=query)
@@ -252,11 +244,10 @@ class GetAllCompaniesView(APIView):
 
     def get(self, request):
         try:
-            query = request.data.get("query", None)
+            query = request.GET.get("query", None)
             if query is not None:
                 query = Q(name__contains=query)
-            skills = Skills.objects.all().filter(name=query)
-            return Response({"detail": f"success", "data": SkillSerializer(skills, many=True).data},
-                            status=status.HTTP_200_OK)
+            print(query)
+            return Response({"detail": f"success"}, status=status.HTTP_200_OK)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
