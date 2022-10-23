@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.db.models import Q
 from .models import TechieProfile, Skills
-from accounts.models import User
+from accounts.models import User, Company
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -123,7 +123,7 @@ class TechieProfileUpdateView(APIView):
             linkedin = request.data.get("linkedin", None)
             if linkedin is not None:
                 techie_instance.socials.update({"linkedin": linkedin})
-            print(techie_instance.socials)
+            # print(techie_instance.socials)
             #
             facebook = request.data.get("facebook", None)
             if facebook is not None:
@@ -183,9 +183,23 @@ class TechieProfileUpdateView(APIView):
                             name=item,
                             techie_profile=techie_instance
                         )
+            # Companies
+            companies = request.data.get("companies", None)
+
+            if companies is not None:
+                ids = ast.literal_eval(companies)
+                for company_id in ids:
+                    company = Company.objects.filter(id=int(company_id))
+                    if company.exists():
+                        techie_instance.companies.add(Company.objects.get(id=int(company_id)))
+
+                    else:
+                        # Log error
+                        print("could not save", company_id)
 
             user.save()
             techie_instance.save()
+
             if user.first_name and user.last_name and user.username and user.bio \
                     and len(user.location.split(',')) == 2 and techie_instance.socials['linkedin']:
                 techie_instance.is_completed = True

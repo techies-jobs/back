@@ -133,14 +133,10 @@ class GetUserByUserNameView(APIView):
         try:
             if username is None:
                 return Response({"detail": f"Please pass in username"}, status=status.HTTP_400_BAD_REQUEST)
-            # print(username)
 
             user = User.objects.filter(username=username)
             if not user:
                 return Response({"detail": f"No user with username '{username}'"}, status=status.HTTP_400_BAD_REQUEST)
-
-            # techie_profile = TechieProfile.objects.filter(user__username=username)
-            serialized_data = None
 
             if TechieProfile.objects.filter(user__username=username).exists():
                 techie_profile = TechieProfile.objects.get(user__username=username)
@@ -162,6 +158,9 @@ class GetUserByUserNameView(APIView):
 
 
 class UpVoteView(APIView):
+    """
+        Authenticated users calls this view (end-point) with an 'up_vote_instance_id' to up-vote an account / company.
+    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
