@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include("accounts.urls")),
     path('techie/', include("techie.urls")),
+    path('recruiter/', include("recruiter.urls")),
     path('u/<str:username>/', GetUserByUserNameView.as_view(), name="get-profile"),
     path('check-username/', CheckUserNameAvailability.as_view(), name="check-username"),
     path('skills/', GetAllSkillsView.as_view(), name="get-all-skills"),

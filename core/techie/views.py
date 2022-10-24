@@ -36,7 +36,7 @@ class TechieProfileView(APIView):
 
 
 class TechieProfileUpdateView(APIView):
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         try:
@@ -110,7 +110,7 @@ class TechieProfileUpdateView(APIView):
                                            f"'{job_type}'"})
             # Completed Location
 
-            #  Check to see if Techie's Social field is 'None', the change value to an Empty JSON format.
+            #  Check to see if Techie's Social field is 'None', then change value to an Empty JSON format.
             if techie_instance.socials is None:
                 techie_instance.socials = dict(twitter="value")
                 techie_instance.save()
@@ -191,6 +191,7 @@ class TechieProfileUpdateView(APIView):
                 for company_id in ids:
                     company = Company.objects.filter(id=int(company_id))
                     if company.exists():
+                        # Add company instance to techie's company
                         techie_instance.companies.add(Company.objects.get(id=int(company_id)))
 
                     else:
@@ -218,7 +219,7 @@ class GetAllVerifiedTechiesView(APIView):
         try:
             techies_profile = TechieProfile.objects.all().filter(verified=True)
             serialized_data = GetAllVerifiedTechieSerializer(techies_profile, many=True).data
-            return Response({"detail": "Success", "data": serialized_data}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Success", "data": serialized_data}, status=status.HTTP_200_OK)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
