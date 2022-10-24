@@ -73,3 +73,9 @@ class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skills
         fields = "__all__"
+
+
+class CompanySearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ['id', 'name']

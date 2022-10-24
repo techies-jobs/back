@@ -66,6 +66,7 @@ class UpVote(models.Model):
 class Company(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     # creator = models.ForeignKey(RecruiterProfile, on_delete=models.SET_NULL)
+    slug = models.SlugField(max_length=100, blank=True, null=True)
     image = models.ImageField(blank=True, null=True)
     headline = models.CharField(max_length=100, blank=True, null=True)
     about = models.TextField(blank=True, null=True)

@@ -6,7 +6,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from .serializers import UserSerializer, TechieProfileSerializer, GetAllVerifiedTechieSerializer, SkillSerializer
+from .serializers import UserSerializer, TechieProfileSerializer, GetAllVerifiedTechieSerializer, SkillSerializer, \
+    CompanySearchSerializer
 from .models import Expectation, Responsibility
 import ast
 # Create your views here.
@@ -213,6 +214,7 @@ class TechieProfileUpdateView(APIView):
 
 
 class GetAllVerifiedTechiesView(APIView):
+    """ Get all verified Techies """
     permission_classes = []
 
     def get(self, request):
@@ -225,11 +227,11 @@ class GetAllVerifiedTechiesView(APIView):
 
 
 class GetAParticularVerifiedTechie(APIView):
+    """ I haven't really implemented this, it is dependent on the verification process"""
     permission_classes = []
 
     def get(self, request):
         try:
-
             techies_profile = TechieProfile.objects.all().filter(verified=True)
             serialized_data = GetAllVerifiedTechieSerializer(techies_profile, many=True).data
             return Response({"detail": "Success", "data": serialized_data}, status=status.HTTP_400_BAD_REQUEST)
@@ -242,27 +244,37 @@ class GetAllSkillsView(APIView):
 
     def get(self, request):
         try:
-            print(request.GET)
             query = request.GET.get("query", None)
 
             if query is not None:
-                query = Q(name__icontains=query)
-            skills = Skills.objects.all().filter(name=query)
+                query = Q(name__startswith=query)
+                skills = Skills.objects.filter(name=query)
+                return Response({"detail": f"success", "data": SkillSerializer(skills, many=True).data},
+                                status=status.HTTP_200_OK)
+            print(query)
+            skills = Skills.objects.filter(name=query)
+            print(skills)
             return Response({"detail": f"success", "data": SkillSerializer(skills, many=True).data},
                             status=status.HTTP_200_OK)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GetAllCompaniesView(APIView):
+class GetCompaniesView(APIView):
+    """Used to fetch a company by query parameter"""
     permission_classes = []
 
     def get(self, request):
         try:
             query = request.GET.get("query", None)
+
             if query is not None:
-                query = Q(name__contains=query)
-            print(query)
-            return Response({"detail": f"success"}, status=status.HTTP_200_OK)
+                query = Q(name__icontains=query)
+                query_set = Company.objects.filter(query)
+            else:
+                query_set = Company.objects.filter()
+
+            serialized = CompanySearchSerializer(query_set, many=True).data
+            return Response({"detail": f"success", "data": serialized}, status=status.HTTP_200_OK)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
