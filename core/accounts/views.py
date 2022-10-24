@@ -1,15 +1,20 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse, get_object_or_404
 import random
 import secrets
 from django.contrib.auth import authenticate
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
-
+from accounts.models import UpVote, Company
+from recruiter.models import RecruiterProfile
+from recruiter.serializers import RecruiterProfileSerializer
 from .serializers import UserSerializer
 from .utils import validate_email
 from techie.models import User, TechieProfile
+from techie.serializers import TechieProfileSerializer
+from rest_framework import status
 
 
 # Create your views here.
@@ -40,6 +45,9 @@ class ManualSignUpView(APIView):
 
             if username is None:
                 return Response({"detail": "Username field is required"}, status=HTTP_400_BAD_REQUEST)
+
+            if username.split(' ') is True:
+                return Response({"detail": "Username should not contain white spaces"}, status=HTTP_400_BAD_REQUEST)
 
             if password is None:
                 return Response({"detail": "Password field is required"}, status=HTTP_400_BAD_REQUEST)
@@ -103,17 +111,112 @@ class ManualLoginView(APIView):
             if user is not None:
                 user.login_type = "manual"
                 user.save()
-
+                # Check if user has completed his personal info.
                 serialised = UserSerializer(user, many=False).data
                 return Response({"detail": "User has been successfully Authenticated",
                                  "data": {
                                      "access_token": f"{AccessToken.for_user(user)}",
                                      "refresh_token": f"{RefreshToken.for_user(user)}",
                                      "user_details": serialised,
-
                                  }}, status=HTTP_200_OK)
             else:
                 return Response({"detail": "Failed to Authenticate user"}, status=HTTP_400_BAD_REQUEST)
 
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
+
+
+class GetUserByUserNameView(APIView):
+    permission_classes = []
+
+    def get(self, request, username):
+        try:
+            if username is None:
+                return Response({"detail": f"Please pass in username"}, status=status.HTTP_400_BAD_REQUEST)
+            # print(username)
+
+            user = User.objects.filter(username=username)
+            if not user:
+                return Response({"detail": f"No user with username '{username}'"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # techie_profile = TechieProfile.objects.filter(user__username=username)
+            serialized_data = None
+
+            if TechieProfile.objects.filter(user__username=username).exists():
+                techie_profile = TechieProfile.objects.get(user__username=username)
+                serialized_data = TechieProfileSerializer(techie_profile, many=False).data
+                return Response({"detail": f"Success",
+                                 "data": serialized_data}, status=status.HTTP_200_OK)
+
+            if RecruiterProfile.objects.filter(user__username=username).exists():
+                recruiter_profile = RecruiterProfile.objects.get(user__username=username)
+                serialized_data = RecruiterProfileSerializer(recruiter_profile, many=False).data
+
+                return Response({"detail": f"Success",
+                                 "data": serialized_data}, status=status.HTTP_200_OK)
+
+            return Response({"detail": "No user was found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UpVoteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            up_vote_instance_id = request.data.get("up_vote_instance_id", None)
+
+            if up_vote_instance_id is None:
+                return Response({"detail": "Supply a user or company ID to upvote."}, status=HTTP_200_OK)
+
+            instance_to_vote_for = None
+            # check if any user with 'up_vote_instance_id' exists
+
+            if User.objects.filter(id=up_vote_instance_id).exists():
+                # check if any user with 'up_vote_instance_id' exists
+                user_instance_to_vote_for = User.objects.get(id=up_vote_instance_id)
+
+                if user_instance_to_vote_for.id == request.user.id:
+                    return Response({"detail": "You can't up-vote your account."}, status=HTTP_200_OK)
+
+                if TechieProfile.objects.filter(user=user_instance_to_vote_for).exists():
+                    techie_profile = TechieProfile.objects.get(user=user_instance_to_vote_for)
+
+                    if techie_profile.up_votes.filter(user=user_instance_to_vote_for).exists():
+                        return Response({"detail": "You have already up voted this profile"},
+                                        status=status.HTTP_400_BAD_REQUEST)
+
+                    up_vote = UpVote.objects.create(user=user_instance_to_vote_for)
+                    techie_profile.up_votes.add(up_vote)
+                    return Response({"detail": "Success"}, status=HTTP_200_OK)
+
+                elif Company.objects.filter(id=up_vote_instance_id).exists():
+                    company = Company.objects.get(id=up_vote_instance_id)
+
+                    if company.up_votes.filter(user=user_instance_to_vote_for).exists():
+                        return Response({"detail": "You have already up voted this profile"},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                    up_vote = UpVote.objects.create(user=user_instance_to_vote_for)
+                    company.up_votes.add(up_vote)
+                    return Response({"detail": "Success"}, status=HTTP_200_OK)
+
+            return Response({"detail": "Success"}, status=HTTP_200_OK)
+
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
+
+
+class CheckUserNameAvailability(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        try:
+            query = request.GET.get("query", None)
+            if User.objects.filter(username__iexact=query).exists():
+                return Response({"detail": "Username is not available"}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({"detail": f"Username is available"}, status=status.HTTP_200_OK)
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)

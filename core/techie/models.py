@@ -1,6 +1,5 @@
 from django.db import models
-from accounts.models import User, Company
-
+from accounts.models import User, Company, UpVote
 # Create your models here.
 
 
@@ -38,6 +37,7 @@ class TechieProfile(models.Model):
     """
     user = models.OneToOneField(User, null=True, blank=True, on_delete=models.CASCADE)
     slug = models.SlugField(max_length=100, null=True, blank=True)
+    image = models.ImageField(blank=True, null=True)
     owner_user_id = models.CharField(max_length=100, default="", null=True, blank=True)
     verified = models.BooleanField(default=False)
     headline_role = models.CharField(max_length=100, blank=True, null=True)
@@ -48,8 +48,9 @@ class TechieProfile(models.Model):
     can_relocate = models.BooleanField(default=False)
     public = models.BooleanField(default=True)
     available_for_offer = models.BooleanField(default=True)
+    is_completed = models.BooleanField(default=False)
     socials = models.JSONField(null=True, blank=True)
-    # up_votes = models.ManyToManyField(UpVotes)
+    up_votes = models.ManyToManyField(UpVote, blank=True)
     skills = models.ManyToManyField(Skills, help_text="example: backend developer, HTML, Rust, Python", blank=True)
     is_available = models.BooleanField(default=True)
     companies = models.ManyToManyField(Company, help_text="Companies techies has worked with")
