@@ -1,13 +1,13 @@
 from django.shortcuts import render
 from django.db.models import Q
 from .models import TechieProfile, Skills
-from accounts.models import User, Company
+from accounts.models import User, Company, Roles
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .serializers import UserSerializer, TechieProfileSerializer, GetAllVerifiedTechieSerializer, SkillSerializer, \
-    CompanySearchSerializer
+    CompanySearchSerializer, CompanyPoolSerializer
 from .models import Expectation, Responsibility
 import ast
 # Create your views here.
@@ -250,7 +250,6 @@ class GetSkillsView(APIView):
             if query is not None:
                 query = Q(name__icontains=query)
                 skills = Skills.objects.filter(query)
-                print(skills)
             else:
                 skills = Skills.objects.filter()
 
@@ -276,5 +275,28 @@ class GetCompaniesView(APIView):
 
             serialized = CompanySearchSerializer(query_set, many=True).data
             return Response({"detail": f"success", "data": serialized}, status=status.HTTP_200_OK)
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CompanyPoolView(APIView):
+    """
+        Only Logged in Techie should see this page.
+        Get all Companies by at least 1 role 'is_available' = True, 'verified' = True, profile 'completed' = True
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            if not request.user.user_role == "techie":
+                return Response({"detail": "You are not allowed to view this page"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Company.objects.filter()
+            companies = Company.objects.filter(roles__is_available=True, verified=True, is_completed=True)
+            # Check if at least 1 role is available
+            # Use 'set()' to remove duplicate objects.
+            
+            return Response({"detail": "success", "data": CompanyPoolSerializer(set(companies), many=True).data},
+                            status=status.HTTP_200_OK)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
