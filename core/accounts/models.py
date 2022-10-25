@@ -74,6 +74,8 @@ class Company(models.Model):
     location = models.CharField(max_length=100, blank=True, null=True)
     website = models.URLField(max_length=100, blank=True, null=True)
     contact_url = models.CharField(max_length=100, blank=True, null=True)
+    verified = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name}"
@@ -86,7 +88,7 @@ class Roles(models.Model):
     application_type_value = models.CharField(max_length=100, null=True, blank=True)
     job_type = models.CharField(max_length=100, choices=JOB_TYPE)
     job_location = models.CharField(max_length=100, choices=JOB_LOCATION)
-    is_available = models.BooleanField(default=False)
+    is_available = models.BooleanField(default=False, help_text="Tells if this role is open / available")
     requirements = models.JSONField(null=True, blank=True)
     qualifications = models.JSONField(null=True, blank=True)
     compensation = models.JSONField(null=True, blank=True)

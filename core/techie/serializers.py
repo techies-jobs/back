@@ -78,4 +78,25 @@ class SkillSerializer(serializers.ModelSerializer):
 class CompanySearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'image', 'headline', 'about']
+
+
+class CompanyPoolSerializer(serializers.ModelSerializer):
+    votes = serializers.SerializerMethodField()
+    roles_count = serializers.SerializerMethodField()
+
+    def get_votes(self, obj):
+        return obj.up_votes.count()
+
+    def get_roles_count(self, obj):
+        return Roles.objects.filter(company=obj).count()
+
+    # Job can't be added because a single company can have more than 1 role available and i can't just fetch those
+    # role's job_type at one to the frontend
+    # def get_roles_job_type(self, obj):
+    #     return Roles.objects.filter(company=obj).__str__()
+
+    class Meta:
+        model = Company
+        fields = ['id', 'name', 'image', 'headline', 'about', 'votes', 'verified', 'location', 'roles_count']
+        # Where 'roles_count' field is the available roles count in the company.
