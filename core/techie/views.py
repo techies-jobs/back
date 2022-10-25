@@ -239,7 +239,8 @@ class GetAParticularVerifiedTechie(APIView):
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class GetAllSkillsView(APIView):
+class GetSkillsView(APIView):
+    """ Used for getting a company by query / used to get all companies when no query is passed"""
     permission_classes = []
 
     def get(self, request):
@@ -247,13 +248,12 @@ class GetAllSkillsView(APIView):
             query = request.GET.get("query", None)
 
             if query is not None:
-                query = Q(name__startswith=query)
-                skills = Skills.objects.filter(name=query)
-                return Response({"detail": f"success", "data": SkillSerializer(skills, many=True).data},
-                                status=status.HTTP_200_OK)
-            print(query)
-            skills = Skills.objects.filter(name=query)
-            print(skills)
+                query = Q(name__icontains=query)
+                skills = Skills.objects.filter(query)
+                print(skills)
+            else:
+                skills = Skills.objects.filter()
+
             return Response({"detail": f"success", "data": SkillSerializer(skills, many=True).data},
                             status=status.HTTP_200_OK)
         except (Exception, ) as err:
