@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from techie.models import TechieProfile, Company, Responsibility, Expectation, Skills
 
 # Register your models here.

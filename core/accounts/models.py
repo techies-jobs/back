@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+# from techie.models import JOB_TYPE, JOB_LOCATION
 # Create your models here.
 
 # extending the default Django User model, it is advised to Create your own CustomUser model in any Django app.
@@ -34,9 +35,25 @@ class User(AbstractUser):
 # class Offer(models.Model):
 #     ...
 
+APPLICATION_TYPE = (
+    ('email', 'Email'),
+    ('link', 'Link')
+)
 
-# class Roles(models.Model):
-#     ......
+JOB_LOCATION = (
+    ('remote', 'Remote'),
+    ('onsite', 'On-site'),
+    ('hybrid', 'Hybrid')
+)
+
+JOB_TYPE = (
+    ('freelance', 'Freelance'),
+    ('full-time', 'Full-Time'),
+    ('part-time', 'Part-Time'),
+    ('contract', 'Contract'),
+    ('internship', 'Internship')
+)
+
 
 
 class UpVote(models.Model):
@@ -48,8 +65,8 @@ class UpVote(models.Model):
 
 class Company(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
-
     # creator = models.ForeignKey(RecruiterProfile, on_delete=models.SET_NULL)
+    slug = models.SlugField(max_length=100, blank=True, null=True)
     image = models.ImageField(blank=True, null=True)
     headline = models.CharField(max_length=100, blank=True, null=True)
     about = models.TextField(blank=True, null=True)
@@ -60,3 +77,20 @@ class Company(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+
+class Roles(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True)
+    title = models.CharField(max_length=100, blank=True, null=True)
+    application_type = models.CharField(max_length=15, choices=APPLICATION_TYPE, null=True, blank=True)
+    application_type_value = models.CharField(max_length=100, null=True, blank=True)
+    job_type = models.CharField(max_length=100, choices=JOB_TYPE)
+    job_location = models.CharField(max_length=100, choices=JOB_LOCATION)
+    is_available = models.BooleanField(default=False)
+    requirements = models.JSONField(null=True, blank=True)
+    qualifications = models.JSONField(null=True, blank=True)
+    compensation = models.JSONField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.job_type} - {self.job_location}"
+
