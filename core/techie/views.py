@@ -291,11 +291,7 @@ class CompanyPoolView(APIView):
             if not request.user.user_role == "techie":
                 return Response({"detail": "You are not allowed to view this page"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Company.objects.filter()
             companies = Company.objects.filter(roles__is_available=True, verified=True, is_completed=True)
-            # Check if at least 1 role is available
-            # Use 'set()' to remove duplicate objects.
-            
             return Response({"detail": "success", "data": CompanyPoolSerializer(set(companies), many=True).data},
                             status=status.HTTP_200_OK)
         except (Exception, ) as err:
