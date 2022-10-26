@@ -25,6 +25,7 @@ DATABASES = {
     }
 }
 
+ROOT_URLCONF = 'core.urls'
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
