@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from techie.models import TechieProfile
 from .models import RecruiterProfile
 from accounts.serializers import UserSerializer
 from techie.serializers import CompanySerializer
@@ -27,3 +29,22 @@ class GetAllVerifiedRecruiterSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecruiterProfile
         fields = ['user']
+
+
+class TechiePoolSerializer(serializers.ModelSerializer):
+    """
+        Used to get all techies that reaches the techies pools.
+        This will be seen by the recruiter.
+
+        firstname, lastname, user's_location, verified, image, headline_role, job_type, up_votes.
+
+    """
+    user = UserSerializer()
+    votes = serializers.SerializerMethodField()
+
+    def get_votes(self, obj):
+        return obj.up_votes.count()
+
+    class Meta:
+        model = TechieProfile
+        fields = ['id', 'user', 'image', 'verified', 'headline_role', 'job_type', 'votes']

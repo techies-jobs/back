@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CREATED, HTTP_401_UNAUTHORIZED
 from accounts.models import User, Company
 from recruiter.models import RecruiterProfile
-from recruiter.serializers import RecruiterProfileSerializer
+from recruiter.serializers import RecruiterProfileSerializer, TechiePoolSerializer
 from techie.models import TechieProfile
 
 # Create your views here.
@@ -141,3 +141,21 @@ class RecruiterProfileUpdateView(APIView):
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
 
+
+class TechiePoolView(APIView):
+    """
+        Only Logged in Techie should see this page.
+        Get all Companies by at least 1 role 'is_available' = True, 'verified' = True, profile 'completed' = True
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            if not request.user.user_role == "techie":
+                return Response({"detail": "You are not allowed to view this page"}, status=HTTP_400_BAD_REQUEST)
+            # print("ui")
+            companies = TechieProfile.objects.filter(verified=True, is_completed=True)
+            return Response({"detail": "success", "data": TechiePoolSerializer(set(companies), many=True).data},
+                            status=HTTP_200_OK)
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
