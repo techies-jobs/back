@@ -8,7 +8,7 @@ print("================== PRODUCTION MODE =======================")
 SECRET_KEY = 'django-insecure-1%2d7q2z(60ep0yu@+cx-r8@c4y8$!j130l-lc=xis9-#8qp_*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["crypticwisdom.pythonanywhere.com", "127.0.0.1", "localhost"]
 
@@ -24,18 +24,6 @@ DATABASES = {
     }
 }
 
-# MySQL Local database settings
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'techies_db',
-#         'USER': 'root',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#         'PASSWORD': 'iamherenow',
-#     }
-# }
-# ROOT_URLCONF = 'core.core.urls'
 ROOT_URLCONF = 'core.urls'
 
 SIMPLE_JWT = {
