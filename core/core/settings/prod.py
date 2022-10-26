@@ -13,28 +13,28 @@ DEBUG = False
 ALLOWED_HOSTS = ["crypticwisdom.pythonanywhere.com", "127.0.0.1", "localhost"]
 
 # MySQL PythonAnywhere database settings
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'crypticwisdom$techies_jobs',
-#         'USER': 'crypticwisdom',
-#         'HOST': 'crypticwisdom.mysql.pythonanywhere-services.com',
-#         'PORT': '3306',
-#         'PASSWORD': 'iamherenow',
-#     }
-# }
-
-# MySQL Local database settings
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'techies_db',
-        'USER': 'root',
-        'HOST': 'localhost',
+        'NAME': 'crypticwisdom$techies_jobs',
+        'USER': 'crypticwisdom',
+        'HOST': 'crypticwisdom.mysql.pythonanywhere-services.com',
         'PORT': '3306',
         'PASSWORD': 'iamherenow',
     }
 }
+
+# MySQL Local database settings
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'techies_db',
+#         'USER': 'root',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#         'PASSWORD': 'iamherenow',
+#     }
+# }
 
 
 SIMPLE_JWT = {
