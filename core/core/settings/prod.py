@@ -12,7 +12,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = ["crypticwisdom.pythonanywhere.com", "127.0.0.1", "localhost"]
 
-MySQL PythonAnywhere database settings
+# MySQL PythonAnywhere database settings
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
