@@ -35,7 +35,7 @@ DATABASES = {
 #         'PASSWORD': 'iamherenow',
 #     }
 # }
-ROOT_URLCONF = 'core.urls'
+ROOT_URLCONF = 'core.core.urls'
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
