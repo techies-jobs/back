@@ -232,3 +232,24 @@ class CheckUserNameAvailability(APIView):
             return Response({"detail": f"Username is available"}, status=status.HTTP_200_OK)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SwitchUserTypeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            print(request.user.user_role)
+            if request.user.user_role == "recruiter":
+                request.user.user_role = "techie"
+                user = User.objects.get(id=request.user)
+                print("Recruiter")
+                ...
+
+            if request.user.user_role == "techie":
+                print("Techie")
+                ...
+            return Response({"detail": f""}, status=HTTP_400_BAD_REQUEST)
+
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)

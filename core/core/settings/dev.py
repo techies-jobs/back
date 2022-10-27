@@ -21,7 +21,7 @@ ALLOWED_HOSTS = ["crypticwisdom.pythonanywhere.com", "127.0.0.1", "localhost"]
 #         'PORT': '3306',
 #         'PASSWORD': 'iamherenow',
 #     }
-#}
+# }
 
 # MySQL PythonAnywhere database settings
 DATABASES = {
