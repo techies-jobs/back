@@ -3,6 +3,18 @@ from pathlib import Path
 from datetime import timedelta
 from decouple import config
 
+print("""
+    Changes in Environment settings was made:
+    - I divided the project's environment settings into 2 ('dev' and 'prod')
+    - Our staging server ("Pythonanywhere") uses the 'dev' environment settings because my code wasn't able to switch 
+      settings on their server (but there's a way i can allow it switch but i haven't really considered doing it).
+    - So, the way i switch from 'dev' settings to 'prod' settings is by changing the 
+     'os.environ['DJANGO_SETTINGS_MODULE'] = 'core.settings.dev' in the 'crypticwisdom_pythonanywhere_com_wsgi.py' on 
+     pythonanywhere, to 'os.environ['DJANGO_SETTINGS_MODULE'] = 'core.settings.prod'.
+     
+     originally it was 'os.environ['DJANGO_SETTINGS_MODULE'] = 'core.settings'
+""")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 

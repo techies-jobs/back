@@ -2,8 +2,6 @@ from .base import *
 
 print("================== DEVELOPMENT MODE =======================", '\n', "Root Directory: ", BASE_DIR)
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-1%2d7q2z(60ep0yu@+cx-r8@c4y8$!j130l-lc=xis9-#8qp_*'
 
@@ -23,7 +21,7 @@ ALLOWED_HOSTS = ["crypticwisdom.pythonanywhere.com", "127.0.0.1", "localhost"]
 #         'PORT': '3306',
 #         'PASSWORD': 'iamherenow',
 #     }
-# }
+#}
 
 # MySQL PythonAnywhere database settings
 DATABASES = {
@@ -37,18 +35,6 @@ DATABASES = {
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'crypticwisdom$techies_jobs',
-#         'USER': 'crypticwisdom',
-#         'HOST': 'crypticwisdom.mysql.pythonanywhere-services.com',
-#         'PORT': '3306',
-#         'PASSWORD': 'iamherenow',
-#     }
-# }
-
-# ROOT_URLCONF = 'core.core.urls'
 ROOT_URLCONF = 'core.urls'
 
 SIMPLE_JWT = {

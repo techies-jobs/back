@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
 from accounts.views import index
-from techie.views import GetCompaniesView, GetSkillsView
+from techie.views import GetSkillsView
+from recruiter.views import GetCompaniesView, CompanyDashBoardView
 from accounts.views import GetUserByUserNameView, CheckUserNameAvailability
 
 
@@ -14,5 +15,8 @@ urlpatterns = [
     path('u/<str:username>/', GetUserByUserNameView.as_view(), name="get-profile"),
     path('check-username/', CheckUserNameAvailability.as_view(), name="check-username"),
     path('skills/', GetSkillsView.as_view(), name="get-all-skills"),
-    path("companies/", GetCompaniesView.as_view(), name="get-all-companies")
+
+    # Company URL
+    path("companies/", GetCompaniesView.as_view(), name="get-all-companies"),
+    path('c/<slug:company_slug>', CompanyDashBoardView.as_view(), name="company-profile"),
 ]
