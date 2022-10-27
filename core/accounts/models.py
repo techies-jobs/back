@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 # from techie.models import JOB_TYPE, JOB_LOCATION
+from recruiter.models import RecruiterProfile
 # Create your models here.
 
 # extending the default Django User model, it is advised to Create your own CustomUser model in any Django app.
@@ -64,7 +65,8 @@ class UpVote(models.Model):
 
 class Company(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
-    # creator = models.ForeignKey(RecruiterProfile, on_delete=models.SET_NULL)
+    #  i will still need to ask if many recruiters can manage many companies
+    creator = models.ManyToManyField(RecruiterProfile, blank=True)
     slug = models.SlugField(max_length=100, blank=True, null=True)
     image = models.ImageField(blank=True, null=True)
     headline = models.CharField(max_length=100, blank=True, null=True)
@@ -72,12 +74,12 @@ class Company(models.Model):
     up_votes = models.ManyToManyField(UpVote, blank=True)
     location = models.CharField(max_length=100, blank=True, null=True)
     website = models.URLField(max_length=100, blank=True, null=True)
-    contact_url = models.CharField(max_length=100, blank=True, null=True)
+    contact_url = models.JSONField(blank=True, null=True)
     verified = models.BooleanField(default=False)
     is_completed = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.slug or self.name} {self.verified}"
 
 
 class Roles(models.Model):

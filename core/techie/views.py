@@ -1,13 +1,12 @@
-from django.shortcuts import render
 from django.db.models import Q
 from .models import TechieProfile, Skills
-from accounts.models import User, Company, Roles
+from accounts.models import User, Company
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from .serializers import UserSerializer, TechieProfileSerializer, GetAllVerifiedTechieSerializer, SkillSerializer, \
-    CompanySearchSerializer, CompanyPoolSerializer
+from .serializers import TechieProfileSerializer, GetAllVerifiedTechieSerializer, SkillSerializer, \
+    CompanyPoolSerializer
 from .models import Expectation, Responsibility
 import ast
 # Create your views here.
@@ -255,26 +254,6 @@ class GetSkillsView(APIView):
 
             return Response({"detail": f"success", "data": SkillSerializer(skills, many=True).data},
                             status=status.HTTP_200_OK)
-        except (Exception, ) as err:
-            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class GetCompaniesView(APIView):
-    """Used to fetch a company by query parameter"""
-    permission_classes = []
-
-    def get(self, request):
-        try:
-            query = request.GET.get("query", None)
-
-            if query is not None:
-                query = Q(name__icontains=query)
-                query_set = Company.objects.filter(query)
-            else:
-                query_set = Company.objects.filter()
-
-            serialized = CompanySearchSerializer(query_set, many=True).data
-            return Response({"detail": f"success", "data": serialized}, status=status.HTTP_200_OK)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 

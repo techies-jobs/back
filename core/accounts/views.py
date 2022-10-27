@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render, HttpResponse, get_object_or_404
 import random
 import secrets
@@ -166,9 +167,14 @@ class UpVoteView(APIView):
     def post(self, request):
         try:
             up_vote_instance_id = request.data.get("up_vote_instance_id", None)
+            company_id_or_slug = request.data.get("company_id_or_slug", None)
 
-            if up_vote_instance_id is None:
-                return Response({"detail": "Supply a user or company ID to upvote."}, status=HTTP_200_OK)
+            if up_vote_instance_id is None and company_id_or_slug is None:
+                return Response({"detail": "Supply a User's ID or Company's slug/ID to upvote."}, status=HTTP_400_BAD_REQUEST)
+
+            # Check if the 'up_vote_instance_id' and 'company_id_or_slug' are supplied together.
+            if up_vote_instance_id is not None and company_id_or_slug is not None:
+                return Response({"detail": "You can only up-vote one instance at a time"}, status=HTTP_400_BAD_REQUEST)
 
             instance_to_vote_for = None
             # check if any user with 'up_vote_instance_id' exists
@@ -190,18 +196,25 @@ class UpVoteView(APIView):
                     up_vote = UpVote.objects.create(user=user_instance_to_vote_for)
                     techie_profile.up_votes.add(up_vote)
                     return Response({"detail": "Success"}, status=HTTP_200_OK)
+            # End of upvote for user instance
 
-                elif Company.objects.filter(id=up_vote_instance_id).exists():
-                    company = Company.objects.get(id=up_vote_instance_id)
+            # Upvoting for company
+            # print(not Company.objects.filter(slug=company_id_or_slug), "-------")
+            if Company.objects.filter(slug=company_id_or_slug).exists():
+                company = Company.objects.filter(slug=company_id_or_slug).first()
+            elif Company.objects.filter(id=company_id_or_slug).exists():
+                company = Company.objects.filter(id=company_id_or_slug).first()
+            else:
+                return Response({"detail": f"Invalid company slug/id field."}, status=HTTP_400_BAD_REQUEST)
 
-                    if company.up_votes.filter(user=user_instance_to_vote_for).exists():
-                        return Response({"detail": "You have already up voted this profile"},
-                                        status=status.HTTP_400_BAD_REQUEST)
-                    up_vote = UpVote.objects.create(user=user_instance_to_vote_for)
-                    company.up_votes.add(up_vote)
-                    return Response({"detail": "Success"}, status=HTTP_200_OK)
-
+            # up_vote = UpVote.objects.create(user=)
+            if company.up_votes.filter(user=request.user).exists():
+                return Response({"detail": "You have already up voted this Company"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            up_vote = UpVote.objects.create(user=request.user)
+            company.up_votes.add(up_vote)
             return Response({"detail": "Success"}, status=HTTP_200_OK)
+            # End of up-voting for company
 
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
