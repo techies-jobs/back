@@ -18,7 +18,7 @@ class RecruiterProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecruiterProfile
-        fields = ['user', 'image', 'headline_role', 'companies', 'socials', 'experience', 'country', 'my_job_location',
+        fields = ['user', 'bio', 'headline_role', 'companies', 'socials', 'experience', 'country', 'my_job_location',
                   'is_completed', 'verified']
         depth = 1
 
@@ -47,4 +47,4 @@ class TechiePoolSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TechieProfile
-        fields = ['id', 'user', 'image', 'verified', 'headline_role', 'job_type', 'votes']
+        fields = ['id', 'user', 'bio', 'verified', 'headline_role', 'job_type', 'votes']

@@ -10,12 +10,12 @@ class RecruiterProfile(models.Model):
     owner_user_id = models.CharField(max_length=100, default="", null=True, blank=True,
                                      help_text="This field holds the ID of the USER that has this "
                                                "Recruiter profile, in case he switches to a Techie")
-    image = models.ImageField(blank=True, null=True)
     headline_role = models.CharField(max_length=100, default="Recruiter", null=True, blank=False)
     companies = models.ManyToManyField('accounts.Company', blank=True)
     # has_hired = (people this recruiter has successfully hired on this platform)
     socials = models.JSONField(null=True, blank=True)
     experience = models.CharField(max_length=100, default="", null=True, blank=True)
+    bio = models.CharField(max_length=100, default="", null=True, blank=True)
     country = models.CharField(max_length=100, default="", null=True, blank=True)
     my_job_location = models.CharField(max_length=100, default="", null=True,
                                        blank=True, help_text="Where this Recruiter works")

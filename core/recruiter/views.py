@@ -76,7 +76,7 @@ class RecruiterProfileUpdateView(APIView):
                 recruiter_instance.headline_role = headline
 
             if bio is not None:
-                user.bio = bio
+                recruiter_instance.bio = bio
             # Completed Personal Details
 
             # Location
@@ -135,7 +135,7 @@ class RecruiterProfileUpdateView(APIView):
             user.save()
             recruiter_instance.save()
 
-            if user.first_name and user.last_name and user.username and user.bio \
+            if user.first_name and user.last_name and user.username and recruiter_instance.bio \
                     and len(user.location.split(',')) == 2 and recruiter_instance.socials['linkedin']:
                 # A validation check on the socials will be integrated in future version.
                 recruiter_instance.is_completed = True
@@ -158,7 +158,7 @@ class TechiePoolView(APIView):
         try:
             if not request.user.user_role == "techie":
                 return Response({"detail": "You are not allowed to view this page"}, status=HTTP_400_BAD_REQUEST)
-            # print("ui")
+
             companies = TechieProfile.objects.filter(verified=True, is_completed=True)
             return Response({"detail": "success", "data": TechiePoolSerializer(set(companies), many=True).data},
                             status=HTTP_200_OK)

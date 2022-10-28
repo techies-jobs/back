@@ -236,20 +236,36 @@ class CheckUserNameAvailability(APIView):
 
 class SwitchUserTypeView(APIView):
     permission_classes = [IsAuthenticated]
-
+    """
+        I need to rethink this switch idea. what if the current techie does not have a recruiter profile, will i still see the 
+        switch button ? And is there a 'Become a Recruiter' button. what if i don't have a recruiter's account, what happens
+    """
     def get(self, request):
         try:
-            print(request.user.user_role)
-            if request.user.user_role == "recruiter":
-                request.user.user_role = "techie"
-                user = User.objects.get(id=request.user)
-                print("Recruiter")
-                ...
-
+            user = request.user
             if request.user.user_role == "techie":
-                print("Techie")
-                ...
-            return Response({"detail": f""}, status=HTTP_400_BAD_REQUEST)
+                user.user_role = "recruiter"
+                user.save()
 
+                if RecruiterProfile.objects.filter(user=request.user).exists():
+                    recruiter_profile = RecruiterProfile.objects.get(user=request.user)
+                else:
+                    recruiter_profile = RecruiterProfile.objects.create(user=request.user, owner_user_id=request.user.id)
+                serialized = RecruiterProfileSerializer(recruiter_profile, many=False).data
+
+                return Response({"detail": "You have switched to your Recruiter Profile",
+                                 "data": serialized}, status=HTTP_200_OK)
+
+            if request.user.user_role == "recruiter":
+                user.user_role = "techie"
+                user.save()
+
+                if TechieProfile.objects.filter(user=request.user).exists():
+                    techie_instance = TechieProfile.objects.get(user=request.user)
+                serialized = TechieProfileSerializer(techie_instance, many=False).data
+                return Response({"detail": "You have switched to your Techie Profile", "data": serialized},
+                                status=HTTP_200_OK)
+
+            return Response({"detail": "Invalid user role type"}, status=HTTP_400_BAD_REQUEST)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)

@@ -79,7 +79,7 @@ class TechieProfileUpdateView(APIView):
                 techie_instance.headline_role = headline
 
             if bio is not None:
-                user.bio = bio
+                techie_instance.bio = bio
             # Completed Personal Details
 
             # Location
@@ -207,7 +207,7 @@ class TechieProfileUpdateView(APIView):
             user.save()
             techie_instance.save()
 
-            if user.first_name and user.last_name and user.username and user.bio \
+            if user.first_name and user.last_name and user.username and techie_instance.bio \
                     and len(user.location.split(',')) == 2 and techie_instance.socials['linkedin']:
                 techie_instance.is_completed = True
 

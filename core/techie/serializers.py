@@ -98,5 +98,5 @@ class CompanyPoolSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company
-        fields = ['id', 'name', 'image', 'headline', 'about', 'votes', 'verified', 'location', 'roles_count']
+        fields = ['id', 'name', 'slug', 'image', 'headline', 'about', 'votes', 'verified', 'location', 'roles_count']
         # Where 'roles_count' field is the available roles count in the company.
