@@ -70,7 +70,8 @@ class TechieProfileUpdateView(APIView):
                 user.last_name = last_name
 
             if username is not None:
-                if User.objects.filter(username__iexact=username).exists():
+                user_ = User.objects.filter(username__iexact=username)
+                if user_.exists() and user_.last() != request.user:
                     return Response({"detail": "Username not available"}, status=status.HTTP_400_BAD_REQUEST)
                 user.username = username
 
@@ -146,7 +147,10 @@ class TechieProfileUpdateView(APIView):
             skills = request.data.get("skills", None)
             if skills is not None:
                 # convert to python list.
-                skills = ast.literal_eval(skills)
+                print(skills, "---------------------")
+                # skills = ast.literal_eval(skills)
+                print(skills, "---------------------")
+
                 for skill in skills:
                     sk = Skills.objects.all().filter(name__iexact=skill)
                     # print(s, skill, 1, not s, )
@@ -163,9 +167,9 @@ class TechieProfileUpdateView(APIView):
             # Expectations
             expectations = request.data.get("expectations", None)
             if expectations is not None:
-                string_to_list = ast.literal_eval(expectations)
-
-                for item in string_to_list:
+                # string_to_list = ast.literal_eval(expectations)
+                print(expectations, "----------")
+                for item in expectations:
                     if not Expectation.objects.filter(expectation_value__iexact=item, techie_profile=techie_instance):
                         exp = Expectation.objects.create(
                             expectation_value=item,
@@ -176,8 +180,9 @@ class TechieProfileUpdateView(APIView):
             # Responsibility
             responsibilities = request.data.get("responsibilities", None)
             if responsibilities is not None:
-                string_to_list = ast.literal_eval(responsibilities)
-                for item in string_to_list:
+                print(responsibilities, '-------------')
+                # string_to_list = ast.literal_eval(responsibilities)
+                for item in responsibilities:
                     if not Responsibility.objects.filter(name__iexact=item, techie_profile=techie_instance):
                         exp = Responsibility.objects.create(
                             name=item,
@@ -187,8 +192,9 @@ class TechieProfileUpdateView(APIView):
             companies = request.data.get("companies", None)
 
             if companies is not None:
-                ids = ast.literal_eval(companies)
-                for company_id in ids:
+                print(companies, '-------------')
+                # ids = ast.literal_eval(companies)
+                for company_id in companies:
                     company = Company.objects.filter(id=int(company_id))
                     if company.exists():
                         # Add company instance to techie's company
