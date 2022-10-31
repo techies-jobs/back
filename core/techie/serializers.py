@@ -56,7 +56,7 @@ class TechieProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TechieProfile
-        fields = ['user', 'slug', 'skills', 'headline_role', 'companies', 'job_location', 'responsibilities', 'expectations',
+        fields = ['user', 'image', 'slug', 'skills', 'headline_role', 'companies', 'job_location', 'responsibilities', 'expectations',
                   'job_type', 'public', 'available_for_offer', 'socials', 'votes']
         depth = 1
 
@@ -66,7 +66,7 @@ class GetAllVerifiedTechieSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TechieProfile
-        fields = ['user', 'slug', 'verified', 'headline_role']
+        fields = ['user', 'image', 'slug', 'verified', 'headline_role']
 
 
 class SkillSerializer(serializers.ModelSerializer):

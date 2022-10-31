@@ -22,13 +22,12 @@ USER_ROLE = (
 class User(AbstractUser):
     email = models.EmailField(unique=True, max_length=120, null=True, blank=True)
     username = models.CharField(max_length=100, unique=True, null=True)
-    image = models.ImageField(blank=True, null=True)
     terms_and_conditions = models.BooleanField(default=False)
     signup_type = models.CharField(max_length=12, choices=AUTH_CHOICES, null=True, blank=True)
     login_type = models.CharField(max_length=12, choices=AUTH_CHOICES, null=True, blank=True)
     user_role = models.CharField(max_length=100, null=True, blank=True, choices=USER_ROLE, default='techie')
     location = models.CharField(max_length=250, blank=True, null=True)
-    # bio = models.TextField(blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -98,3 +97,9 @@ class Roles(models.Model):
     def __str__(self):
         return f"{self.title} - {self.job_type} - {self.job_location}"
 
+
+class ActivationToken(models.Model):
+    token = models.CharField(max_length=50, null=True, blank=True)
+
+    def __str__(self):
+        return f"token_{self.token}"

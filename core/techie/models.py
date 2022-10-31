@@ -39,8 +39,10 @@ class TechieProfile(models.Model):
     slug = models.SlugField(max_length=100, null=True, blank=True)
     owner_user_id = models.CharField(max_length=100, default="", null=True, blank=True)
     verified = models.BooleanField(default=False)
-    headline_role = models.CharField(max_length=100, blank=True, null=True)
-    bio = models.CharField(max_length=100, blank=True, null=True)
+    image = models.ImageField(blank=True, null=True)    # we need to give users the freedom of having different profile
+    # pix oon different accounts, that's why I added the image field here
+    headline_role = models.CharField(max_length=100, default="Techie", blank=True, null=True)
+    # bio = models.CharField(max_length=100, blank=True, null=True)
     experience = models.CharField(max_length=100, blank=True, null=True)
     notice_period = models.CharField(max_length=100, blank=True, null=True)
     job_location = models.CharField(max_length=100, blank=True, null=True, choices=JOB_LOCATION)

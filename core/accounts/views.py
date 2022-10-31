@@ -1,6 +1,4 @@
-from django.db.models import Q
-from django.shortcuts import render, HttpResponse, get_object_or_404
-import random
+from django.shortcuts import HttpResponse
 import secrets
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
@@ -8,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
-from accounts.models import UpVote, Company
+from accounts.models import UpVote, Company, ActivationToken
 from recruiter.models import RecruiterProfile
 from recruiter.serializers import RecruiterProfileSerializer
 from .serializers import UserSerializer
@@ -36,6 +34,8 @@ class ManualSignUpView(APIView):
             username, email = request.data.get("username", None), request.data.get("email", None)
             password = request.data.get("password", None)
             password_confirm = request.data.get("password_confirm", None)
+            activation_token = request.data.get("activation_token", None)
+            message = ""
             # terms_and_conditions = request.data.get("terms_and_conditions", None)
 
             if email is not None:
@@ -56,6 +56,7 @@ class ManualSignUpView(APIView):
             if password_confirm is None:
                 return Response({"detail": "Confirm Password field is required"}, status=HTTP_400_BAD_REQUEST)
 
+
             # if terms_and_conditions is None:
             #     return Response({"detail": "User needs to accept our terms and conditions"},
             #                     status=HTTP_400_BAD_REQUEST)
@@ -66,9 +67,22 @@ class ManualSignUpView(APIView):
             user = User.objects.create_user(username=username, email=email, terms_and_conditions=True,
                                             signup_type="manual", user_role='techie', password=password)
             techie_instance = TechieProfile.objects.create(user=user, slug=secrets.token_urlsafe(15), owner_user_id=user.id)
+
+            # Activate user
+            if activation_token is not None:
+                token_instance = ActivationToken.objects.filter(token=activation_token)
+                if token_instance.exists():
+                    techie_instance.verified = True
+                    techie_instance.save()
+
+                    token_instance = ActivationToken.objects.get(token=activation_token)
+                    token_instance.delete()
+                    message = "Verification was Successful."
+                else:
+                    message = "Verification was not Successful because an Invalid verification token was passed"
             if user is not None:
                 # Keep things simple, log user in after signup.
-                return Response({"detail": "User creation was successful and logged in",
+                return Response({"detail": f"User creation was successful and logged in. {message}",
                                  "data": {
                                      "access_token": f"{AccessToken.for_user(user)}",
                                      "refresh_token": f"{RefreshToken.for_user(user)}"
@@ -239,18 +253,63 @@ class SwitchUserTypeView(APIView):
     """
         I need to rethink this switch idea. what if the current techie does not have a recruiter profile, will i still see the 
         switch button ? And is there a 'Become a Recruiter' button. what if i don't have a recruiter's account, what happens
+        
+        - Basic information should switch between profile.
     """
     def get(self, request):
         try:
+            print(request.user)
             user = request.user
             if request.user.user_role == "techie":
                 user.user_role = "recruiter"
                 user.save()
 
                 if RecruiterProfile.objects.filter(user=request.user).exists():
+                    # Get his/her Techie's profile to collect switchable data like, socials,
+                    techie_instance = TechieProfile.objects.get(user=user)
+                    techie_socials = techie_instance.socials
+
                     recruiter_profile = RecruiterProfile.objects.get(user=request.user)
+                    recruiter_socials = recruiter_profile.socials
+
+                    # check: if techie and recruiter is not empty before performing 'socials' merging.
+                    if techie_socials is not None and recruiter_socials is not None:
+                        if "" in recruiter_socials:
+                            del recruiter_socials[""]
+
+                        for key, value in techie_socials.items():
+                            # check: if 'key' e.g 'facebook' in "recruiter's" socials and if "key's" value is not empty.
+                            if key in recruiter_socials and bool(recruiter_socials[key]) is False:
+                                recruiter_socials[key] = value
+                            # check: if 'key' is 'Twitter', 'facebook', 'linkedin'; as a recruiter needs only these.
+                            elif key in ['twitter', 'facebook', 'linkedin']:
+                                recruiter_socials[key] = value
+                            # if the 'key' is not present, but it is one of these, 'twitter', 'facebook', 'linkedin'
+                            elif key not in recruiter_socials and key in ['twitter', 'facebook', 'linkedin']:
+                                recruiter_socials[key] = value
+                            else:
+                                print("---log-3---")
+                                ...
+                            recruiter_profile.save()
+                    # check: if techie socials is not empty and recruiter's socials is (null) None.
+                    elif techie_socials is not None and recruiter_socials is None:
+                        # operation: get socials from techie if present.
+                        recruiter_profile.socials = dict()
+                        for key, value in techie_socials.items():
+                            if key in ['twitter', 'linkedin', 'facebook']:
+                                recruiter_profile.socials[key] = value
+                            recruiter_profile.save()
                 else:
+                    # Since recruiter was not found, then create and transfer details to it.
                     recruiter_profile = RecruiterProfile.objects.create(user=request.user, owner_user_id=request.user.id)
+                    # operation: get socials from techie if present.
+                    techie_instance = TechieProfile.objects.get(user=user)
+                    techie_socials = techie_instance.socials
+                    recruiter_profile.socials = dict()
+                    for key, value in techie_socials.items():
+                        if key in ['twitter', 'linkedin', 'facebook']:
+                            recruiter_profile.socials[key] = value
+                        recruiter_profile.save()
                 serialized = RecruiterProfileSerializer(recruiter_profile, many=False).data
 
                 return Response({"detail": "You have switched to your Recruiter Profile",
@@ -260,8 +319,41 @@ class SwitchUserTypeView(APIView):
                 user.user_role = "techie"
                 user.save()
 
+                techie_instance = None
                 if TechieProfile.objects.filter(user=request.user).exists():
-                    techie_instance = TechieProfile.objects.get(user=request.user)
+                    # Get his/her Techie's profile to collect switchable data like, socials,
+                    techie_instance = TechieProfile.objects.get(user=user)
+                    techie_socials = techie_instance.socials
+
+                    recruiter_profile = RecruiterProfile.objects.get(user=request.user)
+                    recruiter_socials = recruiter_profile.socials
+
+                    if recruiter_socials is not None and techie_socials is not None:
+                        if "" in techie_socials:
+                            del techie_socials[""]
+
+                        for key, value in recruiter_socials.items():
+                            # check: if 'key' e.g 'facebook' in "recruiter's" socials and if "key's" value is not empty.
+                            if key in techie_socials and bool(techie_socials[key]) is False:
+                                techie_socials[key] = value
+                            # check: if 'key' is 'Twitter', 'facebook', 'linkedin'; as a recruiter needs only these.
+                            elif key in ['twitter', 'facebook', 'linkedin']:
+                                techie_socials[key] = value
+                            # if the 'key' is not present, but it is one of these, 'twitter', 'facebook', 'linkedin'
+                            elif key not in techie_socials and key in ['twitter', 'facebook', 'linkedin']:
+                                techie_socials[key] = value
+                            else:
+                                print("---log-3---")
+                                ...
+                            techie_instance.save()
+                    elif recruiter_socials is not None and techie_socials is None:
+                        print(techie_socials, '=-=-=-=-=-=')
+                        techie_instance.socials = dict()
+                        for key, value in recruiter_socials:
+                            if key in ['twitter', 'linkedin', 'facebook']:
+                                techie_instance.socials[key] = value
+                            techie_instance.save()
+
                 serialized = TechieProfileSerializer(techie_instance, many=False).data
                 return Response({"detail": "You have switched to your Techie Profile", "data": serialized},
                                 status=HTTP_200_OK)
@@ -269,3 +361,48 @@ class SwitchUserTypeView(APIView):
             return Response({"detail": "Invalid user role type"}, status=HTTP_400_BAD_REQUEST)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
+
+
+class GenerateRandomActivationTokenView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        try:
+            """
+                Make sure anybody visiting this endpoint is not a 'recruiter or a techie.
+                Future feature for this endpoint:
+                    - Will Un-verify 'techie' or 'recruiter' profile that visits this endpoint.
+            """
+            if request.user.is_anonymous:
+                token = secrets.token_urlsafe(10)
+                token_instance = ActivationToken.objects.create(token=token)
+                return Response({"detail": f"{token_instance.token}"}, status=HTTP_201_CREATED)
+
+            if request.user.user_role in ['recruiter', 'techie']:
+                return Response({"detail": "You are not welcome here."}, status=status.HTTP_403_FORBIDDEN)
+
+        except (Exception, ) as err:
+            return Response({"detail": str(err)}, status=HTTP_400_BAD_REQUEST)
+
+
+class TokenVerificationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, token):
+        try:
+            if not token:
+                return Response({"detail": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not (request.user.user_role in ['recruiter', 'techie'] and request.user.is_authenticated):
+                return Response({"detail": "You are not Authenticated neither are you authenticated"},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            elif request.user.user_role == 'recruiter':
+                print(request.user, "1")
+
+            elif request.user.user_role == 'techie':
+                print(request.user, '2')
+            return Response({"detail": str("err")}, status=HTTP_400_BAD_REQUEST)
+
+        except (Exception, ) as err:
+            return Response({"detail": str(err)}, status=HTTP_400_BAD_REQUEST)
