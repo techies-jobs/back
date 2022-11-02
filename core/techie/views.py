@@ -147,9 +147,9 @@ class TechieProfileUpdateView(APIView):
             skills = request.data.get("skills", None)
             if skills is not None:
                 # convert to python list.
-                print(skills, "---------------------")
+                # print(skills, "---------------------")
                 # skills = ast.literal_eval(skills)
-                print(skills, "---------------------")
+                # print(skills, "---------------------")
 
                 for skill in skills:
                     sk = Skills.objects.all().filter(name__iexact=skill)
@@ -162,25 +162,39 @@ class TechieProfileUpdateView(APIView):
                     else:
                         sk = Skills.objects.get(name__iexact=skill)
                         techie_instance.skills.add(sk)
+
+                for instance in techie_instance.skills.all():
+                    if str(instance.name).capitalize() not in [str(skl).capitalize() for skl in skills]:
+                        techie_instance.skills.remove(instance.id)
+
             # Skills Completed
 
             # Expectations
-            expectations = request.data.get("expectations", None)
+            expectations = request.data.get("expectations", None)   # ["$100/hour", "scripting with server", "iiiuuu"]
             if expectations is not None:
                 # string_to_list = ast.literal_eval(expectations)
-                print(expectations, "----------")
+                # print(expectations, "----------")
+
                 for item in expectations:
-                    if not Expectation.objects.filter(expectation_value__iexact=item, techie_profile=techie_instance):
+                    if not Expectation.objects.filter(expectation_value__iexact=item, techie_profile=techie_instance) and item not in ['', ' ', '   ', '    ']:
                         exp = Expectation.objects.create(
                             expectation_value=item,
                             techie_profile=TechieProfile.objects.get(user=request.user)
                         )
+
+                 # Check if expectations coming in is
+                all_techie_instance_expectation = Expectation.objects.filter(techie_profile=techie_instance)
+                for instance in all_techie_instance_expectation:
+                    if str(instance.expectation_value).capitalize() not in [str(exp).capitalize() for exp in expectations]:
+                        # print(instance.expectation_value, 'expectations')
+                        instance.delete()
             # Expectations Completed
+
 
             # Responsibility
             responsibilities = request.data.get("responsibilities", None)
             if responsibilities is not None:
-                print(responsibilities, '-------------')
+                # print(responsibilities, '-------------')
                 # string_to_list = ast.literal_eval(responsibilities)
                 for item in responsibilities:
                     if not Responsibility.objects.filter(name__iexact=item, techie_profile=techie_instance):
@@ -188,21 +202,32 @@ class TechieProfileUpdateView(APIView):
                             name=item,
                             techie_profile=techie_instance
                         )
+
+                # Check if expectations coming in is
+                all_techie_instance_responsibilities = Responsibility.objects.filter(techie_profile=techie_instance)
+                for instance in all_techie_instance_responsibilities:
+                    if str(instance.name).capitalize() not in [str(exp).capitalize() for exp in responsibilities]:
+                        # print(instance.name, 'responsibility')
+                        instance.delete()
+
             # Companies
             companies = request.data.get("companies", None)
 
             if companies is not None:
-                print(companies, '-------------')
+                # print(companies, '-------------')
                 # ids = ast.literal_eval(companies)
                 for company_id in companies:
                     company = Company.objects.filter(id=int(company_id))
                     if company.exists():
                         # Add company instance to techie's company
                         techie_instance.companies.add(Company.objects.get(id=int(company_id)))
-
                     else:
                         # Log error
                         print("could not save", company_id)
+
+                for instance in techie_instance.companies.all():
+                    if str(instance.id) not in companies:
+                        techie_instance.companies.remove(instance.id)
 
             user.save()
             techie_instance.save()
