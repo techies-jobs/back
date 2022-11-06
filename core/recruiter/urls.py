@@ -11,4 +11,5 @@ urlpatterns = [
 
     # Create Company
     path('create/company', CreateCompanyView.as_view(), name="create-company"),
+    # path('create/company', CreateCompanyView.as_view(), name="create-company"),
 ]

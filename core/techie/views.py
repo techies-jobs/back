@@ -298,8 +298,9 @@ class CompanyPoolView(APIView):
 
     def get(self, request):
         try:
-            if not request.user.user_role == "techie":
-                return Response({"detail": "You are not allowed to view this page"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # if not request.user.user_role == "techie":
+            #     return Response({"detail": "You are not allowed to view this page"}, status=status.HTTP_400_BAD_REQUEST)
 
             companies = Company.objects.filter(roles__is_available=True, verified=True, is_completed=True)
             return Response({"detail": "success", "data": CompanyPoolSerializer(set(companies), many=True).data},

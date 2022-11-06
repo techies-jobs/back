@@ -10,3 +10,11 @@ def validate_email(email):
     except (TypeError, Exception) as err:
         # Log error
         return False
+
+
+def validate_url(url: str) -> bool:
+    if not str(url).startswith("https://"):
+        return False
+    return True
+
+
