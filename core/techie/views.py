@@ -231,7 +231,7 @@ class TechieProfileUpdateView(APIView):
 
             user.save()
             techie_instance.save()
-
+            techie_instance.is_completed = False
             if user.first_name and user.last_name and user.username and user.bio \
                     and len(user.location.split(',')) == 2 and techie_instance.socials['linkedin']:
                 techie_instance.is_completed = True

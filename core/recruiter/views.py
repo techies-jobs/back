@@ -140,10 +140,10 @@ class RecruiterProfileUpdateView(APIView):
             user.save()
             recruiter_instance.save()
 
-            if user.first_name and user.last_name and user.username and user.bio \
-                    and len(user.location.split(',')) == 2 and validate_url(recruiter_instance.socials['linkedin']) and \
-                    validate_url(recruiter_instance.socials['twitter']) and validate_url(
-                recruiter_instance.socials['facebook']):
+            recruiter_instance.is_completed = False
+            # Joel wants is_completed profile True, only when user has supplied the basic data including the linkedin url
+            if user.first_name and user.last_name and user.username and user.bio and \
+                    validate_url(recruiter_instance.socials['linkedin']):
                 # A validation check on the socials will be integrated in future version.
                 recruiter_instance.is_completed = True
 
