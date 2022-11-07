@@ -52,7 +52,7 @@ class RecruiterProfileUpdateView(APIView):
         try:
             if not request.user.user_role == "recruiter":
                 return Response({"detail": "You are not allowed to view this page"}, status=HTTP_401_UNAUTHORIZED)
-            print("-----------------------", request.user.user_role)
+
             user = User.objects.get(id=request.user.id)
             recruiter_instance = RecruiterProfile.objects.get(user=user)
 
@@ -69,7 +69,9 @@ class RecruiterProfileUpdateView(APIView):
                 user.last_name = last_name
 
             if username is not None:
-                if User.objects.filter(username__iexact=username).exists():
+                username_check = User.objects.filter(username__iexact=username)
+
+                if username_check.exists() and username_check.last() != user:
                     return Response({"detail": "Username not available"}, status=HTTP_400_BAD_REQUEST)
                 user.username = username
 
