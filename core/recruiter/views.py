@@ -52,7 +52,7 @@ class RecruiterProfileUpdateView(APIView):
         try:
             if not request.user.user_role == "recruiter":
                 return Response({"detail": "You are not allowed to view this page"}, status=HTTP_401_UNAUTHORIZED)
-
+            print("-----------------------", request.user.user_role)
             user = User.objects.get(id=request.user.id)
             recruiter_instance = RecruiterProfile.objects.get(user=user)
 
@@ -141,9 +141,12 @@ class RecruiterProfileUpdateView(APIView):
             recruiter_instance.save()
 
             recruiter_instance.is_completed = False
+            print("---------------------", validate_url(recruiter_instance.socials['linkedin']))
+
             # Joel wants is_completed profile True, only when user has supplied the basic data including the linkedin url
-            if user.first_name and user.last_name and user.username and user.bio and \
+            if user.first_name is not None and user.last_name is not None and user.username is not None and user.bio is not None and \
                     validate_url(recruiter_instance.socials['linkedin']):
+                print("-----------222----------")
                 # A validation check on the socials will be integrated in future version.
                 recruiter_instance.is_completed = True
 
