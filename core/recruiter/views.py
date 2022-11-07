@@ -69,7 +69,7 @@ class RecruiterProfileUpdateView(APIView):
                 user.last_name = last_name
 
             if username is not None:
-                if User.objects.filter(username__iexact=username).exits():
+                if User.objects.filter(username__iexact=username).exists():
                     return Response({"detail": "Username not available"}, status=HTTP_400_BAD_REQUEST)
                 user.username = username
 
