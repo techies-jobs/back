@@ -420,6 +420,9 @@ class AddCompanyRole(APIView):
 
     def put(self, request, company_slug=None):
         try:
+            """
+                For editing the company's available roles.
+            """
             ...
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
@@ -504,3 +507,39 @@ class CompanyEditView(APIView):
 
 # Company Views ENDS
 # Recruiter'Creates that isn't the creator of the company should not has access to edit the company.
+
+
+# Offer ...
+
+# API for getting all companies related to a recruiter.
+# Api for getting all roles in a company
+class RecruiterCompaniesAndRoles(APIView):
+    """
+        This view if for getting the companies related to the current logged-in user and also fetch roles relating
+        to that company.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            # if request.user.user_role != "recruiter":
+            #     return Response({"detail": f"You are not allowed to view this page"},
+            #                     status=status.HTTP_401_UNAUTHORIZED)
+            # query = request.GET.get("company", None)
+            # print(query, "--------------")
+
+            return Response({"detail": f""})
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OfferView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            return Response({"detail": f""})
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+# Offer ends ...

@@ -406,3 +406,7 @@ class TokenVerificationView(APIView):
 
         except (Exception, ) as err:
             return Response({"detail": str(err)}, status=HTTP_400_BAD_REQUEST)
+
+
+class UploadImage(APIView):
+    ...

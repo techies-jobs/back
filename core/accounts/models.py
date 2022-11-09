@@ -1,3 +1,4 @@
+# from techie.models import TechieProfile
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 # from techie.models import JOB_TYPE, JOB_LOCATION
@@ -18,6 +19,11 @@ USER_ROLE = (
     ('recruiter', 'Recruiter')
 )
 
+OFFER_STATUS = (
+    ('accept', 'Accept'),
+    ('reject', 'Reject'),
+    ('pending', 'Pending')
+)
 
 class User(AbstractUser):
     email = models.EmailField(unique=True, max_length=120, null=True, blank=True)
@@ -103,3 +109,16 @@ class ActivationToken(models.Model):
 
     def __str__(self):
         return f"token_{self.token}"
+
+
+class Offer(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, null=True, blank=True)
+    role = models.ForeignKey(Roles, on_delete=models.CASCADE, null=True, blank=True)
+    offered_to = models.ForeignKey('techie.TechieProfile', related_name="offered_to", on_delete=models.CASCADE, null=True, blank=True)
+    offered_by = models.ForeignKey('techie.TechieProfile', related_name="offered_by", on_delete=models.CASCADE, null=True, blank=True)
+    accepted = models.CharField(max_length=12, choices=OFFER_STATUS, default="pending")
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"offer from {self.company} to {self.offered_to}"
