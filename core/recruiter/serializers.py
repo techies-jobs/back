@@ -19,10 +19,6 @@ class RecruiterProfileSerializer(serializers.ModelSerializer):
     """
 
     def get_companies(self, obj):
-        # print(Company.objects.filter(creator=obj))
-        # print(obj.companies.all())
-        # for r in obj.companies.all():
-        #     print(Roles.objects.filter(company=r), '---------')
         return CompanySerializer(Company.objects.filter(creator=obj), many=True).data
 
     class Meta:
