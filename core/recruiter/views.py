@@ -8,12 +8,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CREATED, HTTP_401_UNAUTHORIZED
 from accounts.models import User, Company
 from recruiter.models import RecruiterProfile
-from recruiter.serializers import RecruiterProfileSerializer, TechiePoolSerializer
+from recruiter.serializers import RecruiterProfileSerializer, TechiePoolSerializer, GetAllVerifiedRecruiterSerializer
 from techie.models import TechieProfile
 from techie.serializers import CompanySearchSerializer, CompanySerializer
 from accounts.utils import validate_url, validate_email
 from accounts.models import Roles
-
 
 # Create your views here.
 
@@ -33,16 +32,16 @@ class GetLoggedInRecruiterView(APIView):
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
 
 
-# class GetAllVerifiedRecruiterView(APIView):
-#     permission_classes = []
-#
-#     def get(self, request):
-#         try:
-#             recruiter_profile = RecruiterProfile.objects.all()
-#             serialized_data = GetAllVerifiedTechieSerializer(techies_profile, many=True).data
-#             return Response({"detail": "Success", "data": serialized_data}, status=HTTP_200_OK)
-#         except (Exception, ) as err:
-#             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
+class GetAllVerifiedRecruiterView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        try:
+            recruiter_profile = RecruiterProfile.objects.filter(verified=True, is_completed=True)
+            serialized_data = GetAllVerifiedRecruiterSerializer(recruiter_profile, many=True).data
+            return Response({"detail": "Success", "data": serialized_data}, status=HTTP_200_OK)
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
 
 
 class RecruiterProfileUpdateView(APIView):
@@ -202,7 +201,7 @@ class GetCompaniesView(APIView):
 
 
 class CompanyDashBoardView(APIView):
-    permission_classes = [IsAuthenticated]  # Just added IsAuthenticated
+    permission_classes = []
 
     def get(self, request, company_slug):
         try:
@@ -297,7 +296,12 @@ class CreateCompanyView(APIView):
                 company.contact_url.update({'facebook': facebook})
 
             company.save()
+            # Add to company creator
             company.creator.add(recruiter_profile)
+
+            # Add company to Recruiter profile
+            recruiter_profile.companies.add(company)
+
             return Response({"detail": f"You have successfully created '{name}'."}, status=HTTP_200_OK)
 
         except (Exception,) as err:

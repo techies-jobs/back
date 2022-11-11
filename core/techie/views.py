@@ -249,7 +249,7 @@ class GetAllVerifiedTechiesView(APIView):
 
     def get(self, request):
         try:
-            techies_profile = TechieProfile.objects.all().filter(verified=True)
+            techies_profile = TechieProfile.objects.all().filter(verified=True, is_completed=True)
             serialized_data = GetAllVerifiedTechieSerializer(techies_profile, many=True).data
             return Response({"detail": "Success", "data": serialized_data}, status=status.HTTP_200_OK)
         except (Exception, ) as err:
