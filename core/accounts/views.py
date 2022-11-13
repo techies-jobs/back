@@ -258,7 +258,7 @@ class SwitchUserTypeView(APIView):
     """
     def get(self, request):
         try:
-            print(request.user)
+            print(request.user.user_role)
             user = request.user
             if request.user.user_role == "techie":
                 user.user_role = "recruiter"

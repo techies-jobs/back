@@ -224,7 +224,7 @@ class CreateCompanyView(APIView):
 
     def post(self, request):
         try:
-            if not request.user.user_role == "recruiter":
+            if request.user.user_role != "recruiter":
                 return Response({"detail": "You are not allowed to view this page"}, status=HTTP_401_UNAUTHORIZED)
 
             recruiter_profile = RecruiterProfile.objects.get(user=request.user)
