@@ -147,7 +147,7 @@ class RecruiterProfileUpdateView(APIView):
             # Joel wants is_completed profile True, only when user has supplied the basic data including the linkedin url
             if user.first_name is not None and user.last_name is not None and user.username is not None and user.bio is not None and \
                     validate_url(recruiter_instance.socials['linkedin']):
-                print("-----------222----------")
+
                 # A validation check on the socials will be integrated in future version.
                 recruiter_instance.is_completed = True
 

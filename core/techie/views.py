@@ -46,14 +46,14 @@ class TechieProfileUpdateView(APIView):
             public = request.data.get("public", None)
             available_for_offer = request.data.get("available_for_offer", None)
 
-            if public == "on":
+            if public is True:
                 techie_instance.public = True
-            elif public == "off":
+            elif public is False:
                 techie_instance.public = False
 
-            if available_for_offer == "true":
+            if available_for_offer is True:
                 techie_instance.available_for_offer = True
-            elif available_for_offer == "false":
+            elif available_for_offer is False:
                 techie_instance.available_for_offer = False
         # end of Public and Available for offer section
 
