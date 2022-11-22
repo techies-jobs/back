@@ -8,7 +8,6 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import TechieProfileSerializer, GetAllVerifiedTechieSerializer, SkillSerializer, \
     CompanyPoolSerializer
 from .models import Expectation, Responsibility
-import ast
 # Create your views here.
 
 

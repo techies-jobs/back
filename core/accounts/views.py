@@ -144,29 +144,27 @@ class ManualLoginView(APIView):
 class GetUserByUserNameView(APIView):
     permission_classes = []
 
-    def get(self, request, username):
+    def get(self, request, username=None):
         try:
             if username is None:
                 return Response({"detail": f"Please pass in username"}, status=status.HTTP_400_BAD_REQUEST)
 
             user = User.objects.filter(username=username)
             if not user:
-                return Response({"detail": f"No user with username '{username}'"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": f"No user with username '{username}'."}, status=status.HTTP_400_BAD_REQUEST)
 
-            if TechieProfile.objects.filter(user__username=username).exists():
-                techie_profile = TechieProfile.objects.get(user__username=username)
-                serialized_data = TechieProfileSerializer(techie_profile, many=False).data
-                return Response({"detail": f"Success",
-                                 "data": serialized_data}, status=status.HTTP_200_OK)
+            user = User.objects.get(username=username)
 
-            if RecruiterProfile.objects.filter(user__username=username).exists():
-                recruiter_profile = RecruiterProfile.objects.get(user__username=username)
+            serialized_data = None
+            if user.user_role == "recruiter":
+                recruiter_profile = RecruiterProfile.objects.get(user=user)
                 serialized_data = RecruiterProfileSerializer(recruiter_profile, many=False).data
 
-                return Response({"detail": f"Success",
-                                 "data": serialized_data}, status=status.HTTP_200_OK)
+            if user.user_role == "techie":
+                techie_profile = TechieProfile.objects.get(user__username=username)
+                serialized_data = TechieProfileSerializer(techie_profile, many=False).data
 
-            return Response({"detail": "No user was found"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": f"Success", "data": serialized_data}, status=status.HTTP_200_OK)
 
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
