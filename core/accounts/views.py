@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import HttpResponse
 import secrets
 from django.contrib.auth import authenticate
@@ -433,24 +434,51 @@ class GetAllVerifiedCompanyView(APIView):
 class UploadImageView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def post(self, request):
         try:
-            image, user = request.data.get('image', None), request.user
+            user_image, user = request.data.get('user_image', None), request.user
+            company_image = request.data.get('company_image', None)
+            company_slug_or_id = request.data.get('company_slug_or_id', None)
 
-            if not image:
-                return Response({"detail": f"image is required"}, status=status.HTTP_400_BAD_REQUEST)
+            if 'user_image' in request.data and 'company_image' in request.data:
+                return Response({"detail": f"This endpoint receives either 'user_image' or 'company_image' field per "
+                                           f"request."}, status=status.HTTP_400_BAD_REQUEST)
+            if "user_image" in request.data:
+                if not user_image:
+                    return Response({"detail": f"image is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-            if str(image.name).split(".")[-1] not in ['jpeg', 'png', 'jpg']:
-                return Response({"detail": f"Invalid image extension, only accept 'png', 'jpeg' and 'jpg' image."},
-                                status=status.HTTP_403_FORBIDDEN)
+                if str(user_image.name).split(".")[-1] not in ['jpeg', 'png', 'jpg']:
+                    return Response({"detail": f"Invalid image extension, only accept 'png', 'jpeg' and 'jpg' image."},
+                                    status=status.HTTP_403_FORBIDDEN)
 
-            if image.content_type not in ['image/jpeg', 'image/png', 'image/jpg']:
-                return Response({"detail": "Image type is not supported for upload."},
-                                status=status.HTTP_400_BAD_REQUEST)
+                if user_image.content_type not in ['image/jpeg', 'image/png', 'image/jpg']:
+                    return Response({"detail": "Image type is not supported for upload."},
+                                    status=status.HTTP_400_BAD_REQUEST)
 
-            user.image = image
-            user.save()
+                user.image = user_image
+                user.save()
+                return Response({"detail": f"Successfully uploaded your image."})
 
-            return Response({"detail": f"Successfully uploaded your image."})
+            if "company_image" in request.data:
+                if not company_image:
+                    return Response({"detail": f"Company's image is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+                if company_slug_or_id is None:
+                    return Response({"detail": f"The company's ID or Slug is required for image upload."},
+                                    status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "Coming soon"})
+                # Check if user belongs to OR is creator of that company.
+                # query = Q(id=company_slug_or_id) | Q(slug=company_slug_or_id)
+                if str(company_slug_or_id).isnumeric():
+                    company = Company.objects.filter(id=company_slug_or_id)
+                else:
+                    company = Company.objects.filter(slug=company_slug_or_id)
+
+                company = company.last()
+                print(company.creator, '-------')
+                for i in company.creator:
+                    print(i)
+
+                return Response({"detail": f"Successfully uploaded your image."})
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
