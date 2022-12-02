@@ -32,6 +32,11 @@ class CompanySerializer(serializers.ModelSerializer):
     def get_roles(self, obj):
         return RoleSerializer(Roles.objects.filter(company=obj), many=True).data
 
+    def get_image(self, obj):
+        if self.context.get('request') and obj.image:
+            request = self.context.get('request')
+            return request.build_absolute_uri(obj.image.url)
+
     class Meta:
         model = Company
         fields = ['id', 'name', 'slug', 'image', 'headline', 'about', 'votes', 'location', 'website', 'contact_url', 'roles']
@@ -56,7 +61,7 @@ class TechieProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TechieProfile
-        fields = ['user', 'image', 'slug', 'verified', 'skills', 'headline_role', 'companies', 'job_location',
+        fields = ['user', 'slug', 'verified', 'skills', 'headline_role', 'companies', 'job_location',
                   'responsibilities', 'expectations', 'job_type', 'public', 'available_for_offer', 'socials',
                   'votes', 'is_completed']
         depth = 1
@@ -67,7 +72,7 @@ class GetAllVerifiedTechieSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TechieProfile
-        fields = ['user', 'image', 'slug', 'verified', 'headline_role']
+        fields = ['user', 'slug', 'verified', 'headline_role']
 
 
 class SkillSerializer(serializers.ModelSerializer):

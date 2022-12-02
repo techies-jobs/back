@@ -12,7 +12,8 @@ class RecruiterProfile(models.Model):
                                                "Recruiter profile, in case he switches to a Techie")
     headline_role = models.CharField(max_length=100, default="Recruiter", null=True, blank=False)
     companies = models.ManyToManyField('accounts.Company', blank=True)
-    image = models.ImageField(blank=True, null=True)  # we need to give users the freedom of having different profile
+    # On the contrary we don't need image on different profiles cause they are just one user with diff. profiles
+    # image = models.ImageField(blank=True, null=True)  # we need to give users the freedom of having different profile
     # pix oon different accounts, that's why I added the image field here
     # has_hired = (people this recruiter has successfully hired on this platform)
     socials = models.JSONField(null=True, blank=True)

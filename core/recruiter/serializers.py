@@ -11,6 +11,7 @@ class RecruiterProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     # companies = CompanySerializer(read_only=True, many=True)
     companies = serializers.SerializerMethodField()
+    # job_location = serializers.SerializerMethodField()
     """
         Company is a model that has a 'roles' field, which has been serialized and added to the CompanySerializer, so
         to serialize a model that has a ManyToMany Field, you will need to add 'read_only' and 'many' fields to the 
@@ -19,16 +20,14 @@ class RecruiterProfileSerializer(serializers.ModelSerializer):
     """
 
     def get_companies(self, obj):
-        # set1 = CompanySerializer(obj.companies.all(), many=True).data
-        # set2 = CompanySerializer(Company.objects.filter(creator=obj), many=True).data
-        # s = set1 + set2
-        #
-        # return s
         return CompanySerializer(Company.objects.filter(creator=obj), many=True).data
+
+    # def get_job_location(self, obj):
+    #     return obj.my_job_location
 
     class Meta:
         model = RecruiterProfile
-        fields = ['user', 'image', 'headline_role', 'companies', 'socials', 'experience', 'country', 'my_job_location',
+        fields = ['user', 'headline_role', 'companies', 'socials', 'experience', 'country', 'my_job_location',
                   'is_completed', 'verified']
         depth = 1
 
@@ -38,12 +37,12 @@ class GetAllVerifiedRecruiterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecruiterProfile
-        fields = ['user', 'image', 'headline_role', 'country', 'verified']
+        fields = ['id', 'user', 'headline_role', 'country', 'is_completed', 'verified']
 
 
 class TechiePoolSerializer(serializers.ModelSerializer):
     """
-        Used to get all techies that reaches the techies pools.
+        Used to get all techies that reaches the requirements for a techies pools.
         This will be seen by the recruiter.
 
         firstname, lastname, user's_location, verified, image, headline_role, job_type, up_votes.
@@ -57,4 +56,4 @@ class TechiePoolSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TechieProfile
-        fields = ['id', 'user', 'image', 'verified', 'headline_role', 'job_type', 'votes']
+        fields = ['id', 'user', 'verified', 'headline_role', 'job_type', 'votes']

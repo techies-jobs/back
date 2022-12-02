@@ -1,6 +1,4 @@
-import ast
 from django.db.models import Q
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,6 +12,7 @@ from techie.serializers import CompanySearchSerializer, CompanySerializer
 from accounts.utils import validate_url, validate_email
 from accounts.models import Roles
 
+
 # Create your views here.
 
 
@@ -26,7 +25,7 @@ class GetLoggedInRecruiterView(APIView):
                 return Response({"detail": "You are not allowed to view this page"}, status=HTTP_401_UNAUTHORIZED)
 
             recruiter_profile = RecruiterProfile.objects.get(user=request.user)
-            serializer = RecruiterProfileSerializer(recruiter_profile, many=False)
+            serializer = RecruiterProfileSerializer(recruiter_profile, many=False, context={"request": request})
             return Response({"detail": serializer.data}, status=HTTP_200_OK)
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
@@ -35,12 +34,18 @@ class GetLoggedInRecruiterView(APIView):
 class GetAllVerifiedRecruiterView(APIView):
     permission_classes = []
 
-    def get(self, request):
+    def get(self, request, pk=None):
         try:
+            if pk:
+                recruiter_profile = RecruiterProfile.objects.get(id=pk, verified=True, is_completed=True)
+                serialized_data = GetAllVerifiedRecruiterSerializer(recruiter_profile, many=False,
+                                                                    context={"request": request}).data
+                return Response({"detail": serialized_data})
+
             recruiter_profile = RecruiterProfile.objects.filter(verified=True, is_completed=True)
-            serialized_data = GetAllVerifiedRecruiterSerializer(recruiter_profile, many=True).data
-            return Response({"detail": "Success", "data": serialized_data}, status=HTTP_200_OK)
-        except (Exception, ) as err:
+            serialized_data = GetAllVerifiedRecruiterSerializer(recruiter_profile, many=True, context={"request": request}).data
+            return Response({"detail": serialized_data}, status=HTTP_200_OK)
+        except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
 
 
@@ -142,12 +147,10 @@ class RecruiterProfileUpdateView(APIView):
             recruiter_instance.save()
 
             recruiter_instance.is_completed = False
-            print("---------------------", validate_url(recruiter_instance.socials['linkedin']))
 
             # Joel wants is_completed profile True, only when user has supplied the basic data including the linkedin url
             if user.first_name is not None and user.last_name is not None and user.username is not None and user.bio is not None and \
                     validate_url(recruiter_instance.socials['linkedin']):
-
                 # A validation check on the socials will be integrated in future version.
                 recruiter_instance.is_completed = True
 
@@ -172,7 +175,8 @@ class TechiePoolView(APIView):
             #     return Response({"detail": "You are not allowed to view this page"}, status=HTTP_400_BAD_REQUEST)
 
             companies = TechieProfile.objects.filter(verified=True, is_completed=True)
-            return Response({"detail": "success", "data": TechiePoolSerializer(set(companies), many=True).data},
+            return Response({"detail": "success", "data": TechiePoolSerializer(set(companies), many=True,
+                                                                               context={"request": request}).data},
                             status=HTTP_200_OK)
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
@@ -194,7 +198,7 @@ class GetCompaniesView(APIView):
             else:
                 query_set = Company.objects.filter()
 
-            serialized = CompanySearchSerializer(query_set, many=True).data
+            serialized = CompanySearchSerializer(query_set, many=True, context={"request": request}).data
             return Response({"detail": f"success", "data": serialized}, status=status.HTTP_200_OK)
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -211,7 +215,7 @@ class CompanyDashBoardView(APIView):
             company = Company.objects.get(slug=company_slug)
 
             if company is not None:
-                serializer = CompanySerializer(company, many=False).data
+                serializer = CompanySerializer(company, many=False, context={"request": request}).data
                 return Response({"detail": serializer}, status=HTTP_200_OK)
 
             return Response({"detail": "Something unexpected happened"}, status=HTTP_400_BAD_REQUEST)
@@ -509,8 +513,9 @@ class CompanyEditView(APIView):
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
 
+
 # Company Views ENDS
-# Recruiter'Creates that isn't the creator of the company should not has access to edit the company.
+# RecruiterCreates that isn't the creator of the company should not have access to edit the company.
 
 
 # Offer ...
@@ -519,7 +524,7 @@ class CompanyEditView(APIView):
 # Api for getting all roles in a company
 class RecruiterCompaniesAndRoles(APIView):
     """
-        This view if for getting the companies related to the current logged-in user and also fetch roles relating
+        This view is for getting the companies related to the current logged-in user and also fetch roles relating
         to that company.
     """
     permission_classes = [IsAuthenticated]
@@ -533,7 +538,7 @@ class RecruiterCompaniesAndRoles(APIView):
             # print(query, "--------------")
 
             return Response({"detail": f""})
-        except (Exception, ) as err:
+        except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -543,7 +548,7 @@ class OfferView(APIView):
     def post(self, request):
         try:
             return Response({"detail": f""})
-        except (Exception, ) as err:
+        except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
 # Offer ends ...

@@ -22,7 +22,7 @@ class TechieProfileView(APIView):
 
                 techie_instance = TechieProfile.objects.get(user=user)
 
-                serialized = TechieProfileSerializer(techie_instance, many=False).data
+                serialized = TechieProfileSerializer(techie_instance, many=False, context={"request": request}).data
                 return Response({"detail": f"Success", "data": {
                     "profile_details": serialized
                 }}, status=status.HTTP_200_OK)
@@ -249,7 +249,7 @@ class GetAllVerifiedTechiesView(APIView):
     def get(self, request):
         try:
             techies_profile = TechieProfile.objects.all().filter(verified=True, is_completed=True)
-            serialized_data = GetAllVerifiedTechieSerializer(techies_profile, many=True).data
+            serialized_data = GetAllVerifiedTechieSerializer(techies_profile, many=True, context={"request": request}).data
             return Response({"detail": "Success", "data": serialized_data}, status=status.HTTP_200_OK)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -262,7 +262,7 @@ class GetAParticularVerifiedTechie(APIView):
     def get(self, request):
         try:
             techies_profile = TechieProfile.objects.all().filter(verified=True)
-            serialized_data = GetAllVerifiedTechieSerializer(techies_profile, many=True).data
+            serialized_data = GetAllVerifiedTechieSerializer(techies_profile, many=True, context={"request": request}).data
             return Response({"detail": "Success", "data": serialized_data}, status=status.HTTP_400_BAD_REQUEST)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
@@ -297,12 +297,11 @@ class CompanyPoolView(APIView):
 
     def get(self, request):
         try:
-
             # if not request.user.user_role == "techie":
             #     return Response({"detail": "You are not allowed to view this page"}, status=status.HTTP_400_BAD_REQUEST)
-
             companies = Company.objects.filter(roles__is_available=True, verified=True, is_completed=True)
-            return Response({"detail": "success", "data": CompanyPoolSerializer(set(companies), many=True).data},
+            return Response({"detail": "success", "data": CompanyPoolSerializer(set(companies), many=True,
+                                                                                context={"request": request}).data},
                             status=status.HTTP_200_OK)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)

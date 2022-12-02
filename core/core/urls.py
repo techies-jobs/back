@@ -3,7 +3,12 @@ from django.urls import path, include
 from accounts.views import index
 from techie.views import GetSkillsView
 from recruiter.views import GetCompaniesView, CompanyDashBoardView, CompanyEditView, AddCompanyRole
-from accounts.views import GetUserByUserNameView, CheckUserNameAvailability, GenerateRandomActivationTokenView
+from accounts.views import GetUserByUserNameView, CheckUserNameAvailability, GenerateRandomActivationTokenView, \
+    GetAllVerifiedCompanyView
+
+
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 urlpatterns = [
@@ -22,7 +27,13 @@ urlpatterns = [
     path('c/add-role/<slug:company_slug>', AddCompanyRole.as_view(), name="add-company-role"),
     path('c/update/<slug:company_slug>', CompanyEditView.as_view(), name="company-profile"),
 
+    path('company/verified/', GetAllVerifiedCompanyView.as_view(), name="all-verified-company"),
+    path('company/verified/<int:pk>/', GetAllVerifiedCompanyView.as_view(), name="verified-profile"),
+
     # Token
     path("activation-token", GenerateRandomActivationTokenView.as_view(), name="activation-token"),
 
 ]
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+

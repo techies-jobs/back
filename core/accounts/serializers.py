@@ -3,7 +3,15 @@ from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    def get_image(self, obj):
+        request = self.context.get("request") if self.context.get("request") else None
+
+        if request and obj.image.url:
+            return request.build_absolute_uri(obj.image.url)
+        return None
+
     class Meta:
         model = User
-        exclude = ["password", "last_login", "is_superuser", "is_staff", "is_active", "date_joined", "signup_type",
-                   "login_type", "groups", "user_permissions", "terms_and_conditions"]
+        fields = ['id', 'email', 'username', 'image', 'user_role', 'location', 'bio']

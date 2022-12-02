@@ -12,7 +12,7 @@ from recruiter.serializers import RecruiterProfileSerializer
 from .serializers import UserSerializer
 from .utils import validate_email
 from techie.models import User, TechieProfile
-from techie.serializers import TechieProfileSerializer
+from techie.serializers import TechieProfileSerializer, CompanySerializer
 from rest_framework import status
 
 
@@ -127,7 +127,7 @@ class ManualLoginView(APIView):
                 user.login_type = "manual"
                 user.save()
                 # Check if user has completed his personal info.
-                serialised = UserSerializer(user, many=False).data
+                serialised = UserSerializer(user, many=False, context={"request": request}).data
                 return Response({"detail": "User has been successfully Authenticated",
                                  "data": {
                                      "access_token": f"{AccessToken.for_user(user)}",
@@ -158,11 +158,11 @@ class GetUserByUserNameView(APIView):
             serialized_data = None
             if user.user_role == "recruiter":
                 recruiter_profile = RecruiterProfile.objects.get(user=user)
-                serialized_data = RecruiterProfileSerializer(recruiter_profile, many=False).data
+                serialized_data = RecruiterProfileSerializer(recruiter_profile, many=False, context={"request": request}).data
 
             if user.user_role == "techie":
                 techie_profile = TechieProfile.objects.get(user__username=username)
-                serialized_data = TechieProfileSerializer(techie_profile, many=False).data
+                serialized_data = TechieProfileSerializer(techie_profile, many=False, context={"request": request}).data
 
             return Response({"detail": f"Success", "data": serialized_data}, status=status.HTTP_200_OK)
 
@@ -302,13 +302,15 @@ class SwitchUserTypeView(APIView):
                     recruiter_profile = RecruiterProfile.objects.create(user=request.user, owner_user_id=request.user.id)
                     # operation: get socials from techie if present.
                     techie_instance = TechieProfile.objects.get(user=user)
+                    techie_instance.socials = dict()
                     techie_socials = techie_instance.socials
                     recruiter_profile.socials = dict()
+
                     for key, value in techie_socials.items():
                         if key in ['twitter', 'linkedin', 'facebook']:
                             recruiter_profile.socials[key] = value
                         recruiter_profile.save()
-                serialized = RecruiterProfileSerializer(recruiter_profile, many=False).data
+                serialized = RecruiterProfileSerializer(recruiter_profile, many=False, context={"request": request}).data
 
                 return Response({"detail": "You have switched to your Recruiter Profile",
                                  "data": serialized}, status=HTTP_200_OK)
@@ -345,14 +347,14 @@ class SwitchUserTypeView(APIView):
                                 ...
                             techie_instance.save()
                     elif recruiter_socials is not None and techie_socials is None:
-                        print(techie_socials, '=-=-=-=-=-=')
+
                         techie_instance.socials = dict()
                         for key, value in recruiter_socials:
                             if key in ['twitter', 'linkedin', 'facebook']:
                                 techie_instance.socials[key] = value
                             techie_instance.save()
 
-                serialized = TechieProfileSerializer(techie_instance, many=False).data
+                serialized = TechieProfileSerializer(techie_instance, many=False, context={"request": request}).data
                 return Response({"detail": "You have switched to your Techie Profile", "data": serialized},
                                 status=HTTP_200_OK)
 
@@ -406,5 +408,23 @@ class TokenVerificationView(APIView):
             return Response({"detail": str(err)}, status=HTTP_400_BAD_REQUEST)
 
 
+class GetAllVerifiedCompanyView(APIView):
+    permission_classes = []
+
+    def get(self, request, pk=None):
+        try:
+            if pk:
+                company = Company.objects.get(id=pk, verified=True, is_completed=True)
+                serialized_data = CompanySerializer(company, context={"request": request}).data
+                return Response({"detail": serialized_data})
+
+            query_set = Company.objects.filter(verified=True, is_completed=True)
+            serialized_data = CompanySerializer(query_set, many=True, context={"request": request}).data
+            return Response({"detail": serialized_data})
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class UploadImage(APIView):
     ...
+
