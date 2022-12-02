@@ -4,7 +4,7 @@ from accounts.views import index
 from techie.views import GetSkillsView
 from recruiter.views import GetCompaniesView, CompanyDashBoardView, CompanyEditView, AddCompanyRole
 from accounts.views import GetUserByUserNameView, CheckUserNameAvailability, GenerateRandomActivationTokenView, \
-    GetAllVerifiedCompanyView
+    GetAllVerifiedCompanyView, UploadImageView
 
 
 from django.conf import settings
@@ -33,7 +33,11 @@ urlpatterns = [
     # Token
     path("activation-token", GenerateRandomActivationTokenView.as_view(), name="activation-token"),
 
+    # Upload
+    path("image-upload/", UploadImageView.as_view(), name="image-upload"),
+
 ]
+
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

@@ -56,7 +56,6 @@ class ManualSignUpView(APIView):
             if password_confirm is None:
                 return Response({"detail": "Confirm Password field is required"}, status=HTTP_400_BAD_REQUEST)
 
-
             # if terms_and_conditions is None:
             #     return Response({"detail": "User needs to accept our terms and conditions"},
             #                     status=HTTP_400_BAD_REQUEST)
@@ -66,7 +65,8 @@ class ManualSignUpView(APIView):
 
             user = User.objects.create_user(username=username, email=email, terms_and_conditions=True,
                                             signup_type="manual", user_role='techie', password=password)
-            techie_instance = TechieProfile.objects.create(user=user, slug=secrets.token_urlsafe(15), owner_user_id=user.id)
+            techie_instance = TechieProfile.objects.create(user=user, slug=secrets.token_urlsafe(15),
+                                                           owner_user_id=user.id)
 
             # Activate user
             if activation_token is not None:
@@ -119,9 +119,9 @@ class ManualLoginView(APIView):
 
             user = authenticate(request, email=email, password=password)
             # elif login_type == "social":
-                # if username is None:
-                #     username = f"techie-{secrets.token_urlsafe(5)}"
-                # user = User.objects.get(email=email)
+            # if username is None:
+            #     username = f"techie-{secrets.token_urlsafe(5)}"
+            # user = User.objects.get(email=email)
 
             if user is not None:
                 user.login_type = "manual"
@@ -158,7 +158,8 @@ class GetUserByUserNameView(APIView):
             serialized_data = None
             if user.user_role == "recruiter":
                 recruiter_profile = RecruiterProfile.objects.get(user=user)
-                serialized_data = RecruiterProfileSerializer(recruiter_profile, many=False, context={"request": request}).data
+                serialized_data = RecruiterProfileSerializer(recruiter_profile, many=False,
+                                                             context={"request": request}).data
 
             if user.user_role == "techie":
                 techie_profile = TechieProfile.objects.get(user__username=username)
@@ -166,7 +167,7 @@ class GetUserByUserNameView(APIView):
 
             return Response({"detail": f"Success", "data": serialized_data}, status=status.HTTP_200_OK)
 
-        except (Exception, ) as err:
+        except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -182,7 +183,8 @@ class UpVoteView(APIView):
             company_id_or_slug = request.data.get("company_id_or_slug", None)
 
             if up_vote_instance_id is None and company_id_or_slug is None:
-                return Response({"detail": "Supply a User's ID or Company's slug/ID to upvote."}, status=HTTP_400_BAD_REQUEST)
+                return Response({"detail": "Supply a User's ID or Company's slug/ID to upvote."},
+                                status=HTTP_400_BAD_REQUEST)
 
             # Check if the 'up_vote_instance_id' and 'company_id_or_slug' are supplied together.
             if up_vote_instance_id is not None and company_id_or_slug is not None:
@@ -228,7 +230,7 @@ class UpVoteView(APIView):
             return Response({"detail": "Success"}, status=HTTP_200_OK)
             # End of up-voting for company
 
-        except (Exception, ) as err:
+        except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
 
 
@@ -242,7 +244,7 @@ class CheckUserNameAvailability(APIView):
                 return Response({"detail": "Username is not available"}, status=status.HTTP_400_BAD_REQUEST)
 
             return Response({"detail": f"Username is available"}, status=status.HTTP_200_OK)
-        except (Exception, ) as err:
+        except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -254,6 +256,7 @@ class SwitchUserTypeView(APIView):
         
         - Basic information should switch between profile.
     """
+
     def get(self, request):
         try:
             print(request.user.user_role)
@@ -299,7 +302,8 @@ class SwitchUserTypeView(APIView):
                             recruiter_profile.save()
                 else:
                     # Since recruiter was not found, then create and transfer details to it.
-                    recruiter_profile = RecruiterProfile.objects.create(user=request.user, owner_user_id=request.user.id)
+                    recruiter_profile = RecruiterProfile.objects.create(user=request.user,
+                                                                        owner_user_id=request.user.id)
                     # operation: get socials from techie if present.
                     techie_instance = TechieProfile.objects.get(user=user)
                     techie_instance.socials = dict()
@@ -310,7 +314,8 @@ class SwitchUserTypeView(APIView):
                         if key in ['twitter', 'linkedin', 'facebook']:
                             recruiter_profile.socials[key] = value
                         recruiter_profile.save()
-                serialized = RecruiterProfileSerializer(recruiter_profile, many=False, context={"request": request}).data
+                serialized = RecruiterProfileSerializer(recruiter_profile, many=False,
+                                                        context={"request": request}).data
 
                 return Response({"detail": "You have switched to your Recruiter Profile",
                                  "data": serialized}, status=HTTP_200_OK)
@@ -359,7 +364,7 @@ class SwitchUserTypeView(APIView):
                                 status=HTTP_200_OK)
 
             return Response({"detail": "Invalid user role type"}, status=HTTP_400_BAD_REQUEST)
-        except (Exception, ) as err:
+        except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
 
 
@@ -381,7 +386,7 @@ class GenerateRandomActivationTokenView(APIView):
             if request.user.user_role in ['recruiter', 'techie']:
                 return Response({"detail": "You are not welcome here."}, status=status.HTTP_403_FORBIDDEN)
 
-        except (Exception, ) as err:
+        except (Exception,) as err:
             return Response({"detail": str(err)}, status=HTTP_400_BAD_REQUEST)
 
 
@@ -404,7 +409,7 @@ class TokenVerificationView(APIView):
                 print(request.user, '2')
             return Response({"detail": str("err")}, status=HTTP_400_BAD_REQUEST)
 
-        except (Exception, ) as err:
+        except (Exception,) as err:
             return Response({"detail": str(err)}, status=HTTP_400_BAD_REQUEST)
 
 
@@ -421,10 +426,31 @@ class GetAllVerifiedCompanyView(APIView):
             query_set = Company.objects.filter(verified=True, is_completed=True)
             serialized_data = CompanySerializer(query_set, many=True, context={"request": request}).data
             return Response({"detail": serialized_data})
-        except (Exception, ) as err:
+        except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UploadImage(APIView):
-    ...
+class UploadImageView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        try:
+            image, user = request.data.get('image', None), request.user
+
+            if not image:
+                return Response({"detail": f"image is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if str(image.name).split(".")[-1] not in ['jpeg', 'png', 'jpg']:
+                return Response({"detail": f"Invalid image extension, only accept 'png', 'jpeg' and 'jpg' image."},
+                                status=status.HTTP_403_FORBIDDEN)
+
+            if image.content_type not in ['image/jpeg', 'image/png', 'image/jpg']:
+                return Response({"detail": "Image type is not supported for upload."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            user.image = image
+            user.save()
+
+            return Response({"detail": f"Successfully uploaded your image."})
+        except (Exception,) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
