@@ -9,9 +9,8 @@ from recruiter.models import RecruiterProfile
 from recruiter.serializers import RecruiterProfileSerializer, TechiePoolSerializer, GetAllVerifiedRecruiterSerializer
 from techie.models import TechieProfile
 from techie.serializers import CompanySearchSerializer, CompanySerializer
-from accounts.utils import validate_url, validate_email
+from accounts.utils import validate_url, validate_email, validate_image
 from accounts.models import Roles
-
 
 # Create your views here.
 
@@ -262,7 +261,6 @@ class CreateCompanyView(APIView):
             if not about:
                 return Response({"detail": "Tell us what this company does."}, status=HTTP_400_BAD_REQUEST)
 
-            # upload_image =
             country = request.data.get('country', None)
             if not country:
                 return Response({"detail": "In what country is this company located"}, status=HTTP_400_BAD_REQUEST)
@@ -282,6 +280,16 @@ class CreateCompanyView(APIView):
                 website=website,
                 contact_url=dict(twitter=" ")
             )
+
+            # upload_image
+            image = request.data.get("image", None)
+
+            if "image" in request.data:
+                success, msg = validate_image(image=image)
+
+                if success:
+                    company.image = image
+                    company.save()
 
             #  contact_info
             #  Check to see if Techie's Social field is 'None', then change value to an Empty JSON format.
@@ -306,7 +314,12 @@ class CreateCompanyView(APIView):
             # Add company to Recruiter profile
             recruiter_profile.companies.add(company)
 
-            return Response({"detail": f"You have successfully created '{name}'."}, status=HTTP_200_OK)
+            if company.name and company.website and company.headline and company.about and company.location:
+                company.is_completed = True
+                company.save()
+
+            return Response({"detail": f"You have successfully created '{name}'.",
+                             "image_response": msg}, status=HTTP_200_OK)
 
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)

@@ -18,23 +18,19 @@ def validate_url(url: str) -> bool:
     return True
 
 
-# def image_upload(request, **kwargs):
-#     try:
-#         user = request.user
-#         image = request.data.get('image', None)
-#
-#         if not image:
-#             return Response({"detail": f"image is required"}, status=status.HTTP_400_BAD_REQUEST)
-#
-#         if str(image.name).split(".")[-1] not in ['jpeg', 'png', 'jpg']:
-#             return Response({"detail": f"Invalid image extension, only accept 'png', 'jpeg' and 'jpg' image."},
-#                             status=status.HTTP_403_FORBIDDEN)
-#
-#         if image.content_type not in ['image/jpeg', 'image/png', 'image/jpg']:
-#             return Response({"detail": "Image type is not supported for upload."},
-#                             status=status.HTTP_400_BAD_REQUEST)
-#
-#         user.image = image
-#         user.save()
-#     except (Exception, ) as err:
-#         ...
+def validate_image(image):
+    try:
+        if not image:
+            return False, "image is required"
+
+        if str(image.name).split(".")[-1] not in ['jpeg', 'png', 'jpg']:
+            return False, "Invalid image extension, only accept 'png', 'jpeg' and 'jpg' image."
+
+        if image.content_type not in ['image/jpeg', 'image/png', 'image/jpg']:
+            return False, "Image type is not supported for upload."
+
+    except (Exception, ) as err:
+        return False, str(err)
+
+    else:
+        return True, "Success"

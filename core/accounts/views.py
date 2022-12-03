@@ -11,7 +11,7 @@ from accounts.models import UpVote, Company, ActivationToken
 from recruiter.models import RecruiterProfile
 from recruiter.serializers import RecruiterProfileSerializer
 from .serializers import UserSerializer
-from .utils import validate_email
+from .utils import validate_email, validate_image
 from techie.models import User, TechieProfile
 from techie.serializers import TechieProfileSerializer, CompanySerializer
 from rest_framework import status
@@ -444,20 +444,13 @@ class UploadImageView(APIView):
                 return Response({"detail": f"This endpoint receives either 'user_image' or 'company_image' field per "
                                            f"request."}, status=status.HTTP_400_BAD_REQUEST)
             if "user_image" in request.data:
-                if not user_image:
-                    return Response({"detail": f"image is required"}, status=status.HTTP_400_BAD_REQUEST)
+                success, msg = validate_image(image=user_image)
+                if success:
 
-                if str(user_image.name).split(".")[-1] not in ['jpeg', 'png', 'jpg']:
-                    return Response({"detail": f"Invalid image extension, only accept 'png', 'jpeg' and 'jpg' image."},
-                                    status=status.HTTP_403_FORBIDDEN)
-
-                if user_image.content_type not in ['image/jpeg', 'image/png', 'image/jpg']:
-                    return Response({"detail": "Image type is not supported for upload."},
-                                    status=status.HTTP_400_BAD_REQUEST)
-
-                user.image = user_image
-                user.save()
-                return Response({"detail": f"Successfully uploaded your image."})
+                    user.image = user_image
+                    user.save()
+                    return Response({"detail": f"Successfully uploaded your image."})
+                return Response({"detail": f"{msg}"}, status=status.HTTP_400_BAD_REQUEST)
 
             if "company_image" in request.data:
                 if not company_image:
@@ -466,19 +459,32 @@ class UploadImageView(APIView):
                 if company_slug_or_id is None:
                     return Response({"detail": f"The company's ID or Slug is required for image upload."},
                                     status=status.HTTP_400_BAD_REQUEST)
-                return Response({"detail": "Coming soon"})
+
                 # Check if user belongs to OR is creator of that company.
-                # query = Q(id=company_slug_or_id) | Q(slug=company_slug_or_id)
                 if str(company_slug_or_id).isnumeric():
                     company = Company.objects.filter(id=company_slug_or_id)
                 else:
                     company = Company.objects.filter(slug=company_slug_or_id)
 
-                company = company.last()
-                print(company.creator, '-------')
-                for i in company.creator:
-                    print(i)
+                if not company:
+                    return Response({"detail": f"Company with '{company_slug_or_id}' does not exists."},
+                                    status=status.HTTP_404_NOT_FOUND)
 
-                return Response({"detail": f"Successfully uploaded your image."})
+                company = company.last()
+                # Check if the current logged-in user is part of the creator of this Company.
+                if company.creator.filter(user=request.user).exists():
+
+                    # Run image check
+                    success, msg = validate_image(image=company_image)
+                    if success:
+                        company.image = company_image
+                        company.save()
+                        return Response({"detail": f"Successfully uploaded your image."})
+                    return Response({"detail": f"{msg}"}, status=status.HTTP_400_BAD_REQUEST)
+
+                else:
+                    return Response({"detail": f"You are not authorized to edit this company's image."},
+                                    status=status.HTTP_401_UNAUTHORIZED)
+
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
