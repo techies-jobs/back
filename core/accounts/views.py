@@ -488,3 +488,51 @@ class UploadImageView(APIView):
 
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        try:
+            image_type, user = request.data.get('image_type', None), request.user
+            company_slug_or_id = request.data.get('company_slug_or_id', None)
+
+            # Company Image Delete
+            if image_type == "user":
+                user.image = "user.jpeg"
+                user.save()
+                return Response({"detail": f"Image has been deleted."})
+
+            # Company Image Delete
+            if image_type == 'company' and company_slug_or_id is None:
+                return Response({"detail": "This endpoint receives either 'image_type' and 'company_slug_or_id' "
+                                           "to delete a company's image."}, status=status.HTTP_400_BAD_REQUEST)
+            elif image_type != 'company' and company_slug_or_id is not None:
+                return Response({"detail": "Invalid 'image_type' value."}, status=status.HTTP_400_BAD_REQUEST)
+
+            elif image_type == "company" and company_slug_or_id is not None:
+                # Check if user belongs to OR is creator of that company.
+                if str(company_slug_or_id).isnumeric():
+                    company = Company.objects.filter(id=company_slug_or_id)
+                else:
+                    company = Company.objects.filter(slug=company_slug_or_id)
+
+                if not company:
+                    return Response({"detail": f"Company with '{company_slug_or_id}' does not exists."},
+                                    status=status.HTTP_404_NOT_FOUND)
+
+                company = company.last()
+
+                # Check if the current logged-in user is part of the creator of this Company.
+                if company.creator.filter(user=request.user).exists():
+
+                    # Run image check
+                    # supplying the default image name will replace the company image field with the string pass
+                    # provided the string is a valid image that is found in the 'upload' folder.
+                    company.image = "company.jpeg"
+                    company.save()
+                    return Response({"detail": f"Image has been deleted."})
+
+                else:
+                    return Response({"detail": f"You are not authorized to edit this company's image."},
+                                    status=status.HTTP_401_UNAUTHORIZED)
+
+        except (Exception,) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)

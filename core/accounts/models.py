@@ -30,7 +30,7 @@ OFFER_STATUS = (
 class User(AbstractUser):
     email = models.EmailField(unique=True, max_length=120, null=True, blank=True)
     username = models.CharField(max_length=100, unique=True, null=True)
-    image = models.ImageField(blank=True, null=True, upload_to="user", default="avatar.png")
+    image = models.ImageField(blank=True, null=True, upload_to="user", default="user.png")
     terms_and_conditions = models.BooleanField(default=False)
     signup_type = models.CharField(max_length=12, choices=AUTH_CHOICES, null=True, blank=True)
     login_type = models.CharField(max_length=12, choices=AUTH_CHOICES, null=True, blank=True)
@@ -75,7 +75,7 @@ class UpVote(models.Model):
 class Company(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     #  i will still need to ask if many recruiters can manage many companies
-    image = models.ImageField(blank=True, null=True, upload_to="company", default="company.png")
+    image = models.ImageField(blank=True, null=True, upload_to="company", default="company.jpeg")
     creator = models.ManyToManyField(RecruiterProfile, blank=True)
     slug = models.SlugField(max_length=100, blank=True, null=True)
     headline = models.CharField(max_length=100, blank=True, null=True)
