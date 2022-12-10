@@ -57,6 +57,7 @@ class TechieProfile(models.Model):
     is_available = models.BooleanField(default=True)
     companies = models.ManyToManyField(Company, help_text="Companies techies has worked with")
     # hired_by =
+    verification_token = models.CharField(max_length=100, blank=True, null=True)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 

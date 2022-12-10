@@ -25,7 +25,7 @@ class RecruiterProfile(models.Model):
     is_completed = models.BooleanField(default=False, help_text="If recruiter has entered the minimum requirements")
     verified = models.BooleanField(default=False, help_text="If recruiter has been verified by "
                                                             "our platform's verification methods")
-
+    verification_token = models.CharField(max_length=100, blank=True, null=True)
     # up_votes = models.ManyToManyField(UpVote, blank=True)
     # contact_urls =
 

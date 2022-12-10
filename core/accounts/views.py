@@ -536,3 +536,70 @@ class UploadImageView(APIView):
 
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileTokenVerificationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+            Obtain verification token.
+            T - Techie
+            R - Recruiter
+        """
+        try:
+            if request.user.user_role == "techie":
+                techie = TechieProfile.objects.get(user=request.user)
+
+                if techie.verified:
+                    return Response({"detail": "Profile is already verified."}, status=HTTP_400_BAD_REQUEST)
+
+                verification_token = f"{secrets.token_urlsafe(6)}-T"
+                techie.verification_token = verification_token
+                techie.save()
+                return Response({"detail": verification_token})
+
+            if request.user.user_role == "recruiter":
+                recruiter = RecruiterProfile.objects.get(user=request.user)
+
+                if recruiter.verified:
+                    return Response({"detail": "Profile is already verified."}, status=HTTP_400_BAD_REQUEST)
+
+                verification_token = f"{secrets.token_urlsafe(6)}-R"
+                recruiter.verification_token = verification_token
+                recruiter.save()
+                return Response({"detail": verification_token})
+
+            return Response({"detail": "Account has no user profile attached."}, status=HTTP_400_BAD_REQUEST)
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
+
+
+    def put(self, request):
+        try:
+            u_token = request.data.get('token', None)
+
+            if not u_token:
+                return Response({"detail": f"Token is required."}, status=HTTP_400_BAD_REQUEST)
+
+            if request.user.user_role == "techie":
+                techie = TechieProfile.objects.get(user=request.user)
+                if techie.verification_token == u_token:
+                    techie.verified = True
+                    techie.verification_token = ""
+                    techie.save()
+                    return Response({"detail": "You are now a verified Techie."})
+                return Response({"detail": "Invalid Techie token."}, status=HTTP_400_BAD_REQUEST)
+
+            if request.user.user_role == "recruiter":
+                recruiter = RecruiterProfile.objects.get(user=request.user)
+                if recruiter.verification_token == u_token:
+                    recruiter.verified = True
+                    recruiter.verification_token = ""
+                    recruiter.save()
+                    return Response({"detail": "You are now a verified Recruiter."})
+                return Response({"detail": f"Invalid Recruiter token."}, status=HTTP_400_BAD_REQUEST)
+
+            return Response({"detail": "Account has no user profile attached."}, status=HTTP_400_BAD_REQUEST)
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
