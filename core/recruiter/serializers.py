@@ -5,7 +5,7 @@ from .models import RecruiterProfile
 from accounts.serializers import UserSerializer
 from techie.serializers import CompanySerializer
 from accounts.models import Company, Roles
-
+from techie.serializers import RoleSerializer
 
 class RecruiterProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -57,3 +57,20 @@ class TechiePoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = TechieProfile
         fields = ['id', 'user', 'verified', 'headline_role', 'job_type', 'votes']
+
+class CompaniesAndRolesSerializer(serializers.ModelSerializer):
+    roles = serializers.SerializerMethodField()
+
+    def get_roles(self, obj):
+        print(obj, type(obj), obj.id)
+        print(Roles.objects.get(company=obj))
+
+        # if obj:
+        #     roles = Roles.objects.filter(company_id=obj.id)
+        #     print(roles)
+        #     return RoleSerializer(instance=roles, many=True).data
+        return None
+    class Meta:
+        model = Company
+        fields = ["id", "name", "slug", "headline", "about", "roles",
+                  "location", "verified", "is_completed"]

@@ -6,7 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK, HTTP_201_CREATED, HTTP_401_UNAUTHORIZED
 from accounts.models import User, Company
 from recruiter.models import RecruiterProfile
-from recruiter.serializers import RecruiterProfileSerializer, TechiePoolSerializer, GetAllVerifiedRecruiterSerializer
+from recruiter.serializers import RecruiterProfileSerializer, TechiePoolSerializer, GetAllVerifiedRecruiterSerializer, \
+    CompaniesAndRolesSerializer
 from techie.models import TechieProfile
 from techie.serializers import CompanySearchSerializer, CompanySerializer
 from accounts.utils import validate_url, validate_email, validate_image
@@ -41,7 +42,7 @@ class GetAllVerifiedRecruiterView(APIView):
                                                                     context={"request": request}).data
                 return Response({"detail": serialized_data})
 
-            recruiter_profile = RecruiterProfile.objects.filter(verified=True, is_completed=True)
+            recruiter_profile = RecruiterProfile.objects.filter(user__user_role="recruiter", verified=True, is_completed=True)
             serialized_data = GetAllVerifiedRecruiterSerializer(recruiter_profile, many=True, context={"request": request}).data
             return Response({"detail": serialized_data}, status=HTTP_200_OK)
         except (Exception,) as err:
@@ -528,29 +529,30 @@ class CompanyEditView(APIView):
 
 
 # Company Views ENDS
-# RecruiterCreates that isn't the creator of the company should not have access to edit the company.
+# Recruiter Creates that isn't the creator of the company should not have access to edit the company.
 
 
-# Offer ...
 
 # API for getting all companies related to a recruiter.
 # Api for getting all roles in a company
+
 class RecruiterCompaniesAndRoles(APIView):
     """
-        This view is for getting the companies related to the current logged-in user and also fetch roles relating
+        This view is for getting the companies related to the current logged-in recruiter and also fetch roles relating
         to that company.
     """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
-            # if request.user.user_role != "recruiter":
-            #     return Response({"detail": f"You are not allowed to view this page"},
-            #                     status=status.HTTP_401_UNAUTHORIZED)
-            # query = request.GET.get("company", None)
-            # print(query, "--------------")
+            if request.user.user_role != "recruiter":
+                return Response({"detail": f"You are not allowed to view this page"},
+                                status=status.HTTP_401_UNAUTHORIZED)
+            recruiter = RecruiterProfile.objects.get(user=request.user)
 
-            return Response({"detail": f""})
+            print(recruiter.companies.all(), "--------------")
+            serialized = CompaniesAndRolesSerializer(instance=recruiter.companies.all(), many=True).data
+            return Response({"detail": serialized})
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -560,8 +562,18 @@ class OfferView(APIView):
 
     def post(self, request):
         try:
+            if request.user.user_role != "recruiter":
+                return Response({"detail": f"You are not allowed to make offer as a Techie."},
+                                status=status.HTTP_400_BAD_REQUEST)
+            recruiter = RecruiterProfile.objects.get(user=request.user)
+            if recruiter.verified is False or recruiter.is_completed is False:
+                return Response({"detail": f"Your are not a complete recruiter. Get verified and Complete your "
+                                           f"Recruiter profile."}, status=status.HTTP_400_BAD_REQUEST)
+
+
             return Response({"detail": f""})
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
 # Offer ends ...
+

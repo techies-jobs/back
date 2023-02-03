@@ -213,8 +213,6 @@ class TechieProfileUpdateView(APIView):
             companies = request.data.get("companies", None)
 
             if companies is not None:
-                # print(companies, '-------------')
-                # ids = ast.literal_eval(companies)
                 for company_id in companies:
                     company = Company.objects.filter(id=int(company_id))
                     if company.exists():
@@ -223,6 +221,7 @@ class TechieProfileUpdateView(APIView):
                     else:
                         # Log error
                         print("could not save", company_id)
+
 
                 for instance in techie_instance.companies.all():
                     if str(instance.id) not in companies:
@@ -248,7 +247,7 @@ class GetAllVerifiedTechiesView(APIView):
 
     def get(self, request):
         try:
-            techies_profile = TechieProfile.objects.all().filter(verified=True, is_completed=True)
+            techies_profile = TechieProfile.objects.all().filter(user__user_role="techie", verified=True, is_completed=True)
             serialized_data = GetAllVerifiedTechieSerializer(techies_profile, many=True, context={"request": request}).data
             return Response({"detail": "Success", "data": serialized_data}, status=status.HTTP_200_OK)
         except (Exception, ) as err:

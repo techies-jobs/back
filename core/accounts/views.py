@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import check_password, make_password
 from django.db.models import Q
 from django.shortcuts import HttpResponse
 import secrets
@@ -22,7 +23,6 @@ from rest_framework import status
 
 def index(request):
     return HttpResponse("WELCOME TO TECHIES.JOBS DEVELOPMENT AREA")
-
 
 # Create your views here.
 
@@ -140,7 +140,6 @@ class ManualLoginView(APIView):
 
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
-
 
 class GetUserByUserNameView(APIView):
     permission_classes = []
@@ -585,6 +584,14 @@ class ProfileTokenVerificationView(APIView):
             if request.user.user_role == "techie":
                 techie = TechieProfile.objects.get(user=request.user)
                 if techie.verification_token == u_token:
+
+                    # Check if profile is completed.
+                    if not techie.is_completed:
+                        techie.verified = False
+                        techie.verification_token = ""
+                        techie.save()
+                        return Response({"detail": "Your techie profile is yet to be completed completed."}, status=HTTP_400_BAD_REQUEST)
+
                     techie.verified = True
                     techie.verification_token = ""
                     techie.save()
@@ -594,6 +601,14 @@ class ProfileTokenVerificationView(APIView):
             if request.user.user_role == "recruiter":
                 recruiter = RecruiterProfile.objects.get(user=request.user)
                 if recruiter.verification_token == u_token:
+
+                    # Check if profile is completed.
+                    if not recruiter.is_completed:
+                        recruiter.verified = False
+                        recruiter.verification_token = ""
+                        recruiter.save()
+                        return Response({"detail": "Your recruiter profile is yet to be completed."}, status=HTTP_400_BAD_REQUEST)
+
                     recruiter.verified = True
                     recruiter.verification_token = ""
                     recruiter.save()
@@ -602,4 +617,62 @@ class ProfileTokenVerificationView(APIView):
 
             return Response({"detail": "Account has no user profile attached."}, status=HTTP_400_BAD_REQUEST)
         except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        try:
+            password = request.data.get("password", None)
+            password_confirm1 = request.data.get("password_confirm1", None)
+            password_confirm2 = request.data.get("password_confirm2", None)
+
+            if not password:
+                return Response({"detail": f"Password is required"}, status=HTTP_400_BAD_REQUEST)
+
+            if not password_confirm1:
+                return Response({"detail": f"Password confirm is required"}, status=HTTP_400_BAD_REQUEST)
+
+            if not password_confirm2:
+                return Response({"detail": f"Password is required"}, status=HTTP_400_BAD_REQUEST)
+
+            if password_confirm2 != password_confirm1:
+                return Response({"detail": f"Passwords does not match"}, status=HTTP_400_BAD_REQUEST)
+
+            user = request.user
+
+            if not check_password(password=password, encoded=user.password):
+                return Response({"detail": "Incorrect old password"}, status=HTTP_400_BAD_REQUEST)
+
+            user.password = make_password(password=password_confirm1)
+            user.save()
+
+            return Response({"detail": "Password has been successfully reset"})
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)
+
+
+class GeneralSearchView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        try:
+            query = request.data.get("query", None)
+
+            if not query:
+                return Response({"detail": f"'query' parameter is required"}, status=HTTP_400_BAD_REQUEST)
+            # username, first_name, last_name, email, headline
+
+            query = Q(first_name=query)
+
+            query_set = User.objects.filter(username=query)
+            if User.objects.filter(username=query):
+                query  = None
+
+            if User.objects.filter(username=query):
+                query = None
+
+            return Response({"detail": f""})
+        except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=HTTP_400_BAD_REQUEST)

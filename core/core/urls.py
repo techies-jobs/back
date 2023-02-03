@@ -4,7 +4,7 @@ from accounts.views import index
 from techie.views import GetSkillsView
 from recruiter.views import GetCompaniesView, CompanyDashBoardView, CompanyEditView, AddCompanyRole
 from accounts.views import GetUserByUserNameView, CheckUserNameAvailability, GenerateRandomActivationTokenView, \
-    GetAllVerifiedCompanyView, UploadImageView, ProfileTokenVerificationView
+    GetAllVerifiedCompanyView, UploadImageView, ProfileTokenVerificationView, ChangePasswordView, GeneralSearchView
 
 
 from django.conf import settings
@@ -38,6 +38,11 @@ urlpatterns = [
 
     # Verification Token
     path("obtain-token", ProfileTokenVerificationView.as_view(), name="image-upload"),
+
+    # Change password
+    path("change-password", ChangePasswordView.as_view(), name="image-upload"),
+
+    path("search", GeneralSearchView.as_view(), name="image-upload"),
 
 ]
 
