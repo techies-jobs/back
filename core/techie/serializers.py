@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import TechieProfile, Responsibility, Expectation, Skills, Company
 from accounts.serializers import UserSerializer
-from accounts.models import Roles
+from accounts.models import Roles, Offer
 
 
 class ResponsibiltySerializer(serializers.ModelSerializer):
@@ -106,3 +106,9 @@ class CompanyPoolSerializer(serializers.ModelSerializer):
         model = Company
         fields = ['id', 'name', 'slug', 'image', 'headline', 'about', 'votes', 'verified', 'location', 'roles_count']
         # Where 'roles_count' field is the available roles count in the company.
+
+
+class TechieOfferSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Offer
+        fields = '__all__'

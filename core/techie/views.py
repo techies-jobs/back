@@ -1,13 +1,14 @@
 from django.db.models import Q
 from .models import TechieProfile, Skills
-from accounts.models import User, Company
+from accounts.models import User, Company, Offer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .serializers import TechieProfileSerializer, GetAllVerifiedTechieSerializer, SkillSerializer, \
-    CompanyPoolSerializer
+    CompanyPoolSerializer, TechieOfferSerializer
 from .models import Expectation, Responsibility
+
 # Create your views here.
 
 
@@ -304,3 +305,49 @@ class CompanyPoolView(APIView):
                             status=status.HTTP_200_OK)
         except (Exception, ) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+class TechieOfferView(APIView):
+    """
+        This VIEW is responsible for any Techie's related Offer operation.
+    """
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        try:
+            if not request.user.user_role == "techie":
+                return Response({"detail": "You are not allowed to view this page"}, status=status.HTTP_400_BAD_REQUEST)
+
+            offers = Offer.objects.filter(offered_to=request.user.techieprofile)
+            serialized_data = TechieOfferSerializer(offers, many=True).data
+            return Response({"detail": f"Success", "data": serialized_data})
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        try:
+            if not request.user.user_role == "techie":
+                return Response({"detail": "You are not allowed to view this page"}, status=status.HTTP_400_BAD_REQUEST)
+
+            offer_id = request.data.get("offer_id", None)
+            offer_status = request.data.get("offer_status", None)
+
+            if offer_id is None:
+                return Response({"detail": f"'offer_id' is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if offer_status is None:
+                return Response({"detail": f"'offer_status' is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+            offer_status = str(offer_status)
+
+            if offer_status.lower() not in ['accept', 'reject', 'pend']:
+                return Response({"detail": f"'{offer_status}' is not a valid value."}, status=status.HTTP_400_BAD_REQUEST)
+
+            offer = Offer.objects.get(id=offer_id)
+            offer.status = offer_status
+            offer.save()
+            # Send notification to the Recruiter who made the offer.
+
+            serialized_data = TechieOfferSerializer(offer, many=False).data
+            return Response({"detail": f"Success", "data": serialized_data})
+        except (Exception, ) as err:
+            return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+

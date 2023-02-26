@@ -9,4 +9,5 @@ urlpatterns = [
     path('pool/companies', views.CompanyPoolView.as_view(), name="company-pool"),
     # path('get/<str:username>/', views.GetTechieByUserNameView.as_view(), name="get-profile"),
     path('verified/', views.GetAllVerifiedTechiesView.as_view(), name="get-all-verified-techies"),   # To get all verified users.
+    path('my-offer/', views.TechieOfferView.as_view(), name="get-all-verified-techies")
 ]

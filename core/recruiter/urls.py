@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import GetLoggedInRecruiterView, RecruiterProfileUpdateView, TechiePoolView, CompanyDashBoardView, \
-    CreateCompanyView, RecruiterCompaniesAndRoles, GetAllVerifiedRecruiterView
+    CreateCompanyView, RecruiterCompaniesAndRoles, GetAllVerifiedRecruiterView, OfferView
 
 app_name = 'recruiter'
 
@@ -17,5 +17,8 @@ urlpatterns = [
     # Verified
     path('verified/', GetAllVerifiedRecruiterView.as_view(), name="verified-recruiter"),
     path('verified/<int:pk>/', GetAllVerifiedRecruiterView.as_view(), name="verified-recruiter"),
+
+    # Offer
+    path('make-offer', OfferView.as_view(), name="make-offer"),
 
 ]

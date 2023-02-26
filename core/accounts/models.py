@@ -21,9 +21,9 @@ USER_ROLE = (
 )
 
 OFFER_STATUS = (
-    ('accept', 'Accept'),
-    ('reject', 'Reject'),
-    ('pending', 'Pending')
+    ('accept', 'Accepted'),
+    ('reject', 'Rejected'),
+    ('pend', 'Pending')
 )
 
 
@@ -98,7 +98,7 @@ class Roles(models.Model):
     application_type_value = models.CharField(max_length=100, null=True, blank=True)
     job_type = models.CharField(max_length=100, choices=JOB_TYPE)
     job_location = models.CharField(max_length=100, choices=JOB_LOCATION)
-    is_available = models.BooleanField(default=False, help_text="Tells if this role is open / available")
+    is_available = models.BooleanField(default=True, help_text="Tells if this role is open / available")
     requirements = models.JSONField(null=True, blank=True)
     qualifications = models.JSONField(null=True, blank=True)
     compensation = models.JSONField(null=True, blank=True)
@@ -119,11 +119,11 @@ class Offer(models.Model):
     role = models.ForeignKey(Roles, on_delete=models.CASCADE, null=True, blank=True)
     offered_to = models.ForeignKey('techie.TechieProfile', related_name="offered_to", on_delete=models.CASCADE,
                                    null=True, blank=True)
-    offered_by = models.ForeignKey('techie.TechieProfile', related_name="offered_by", on_delete=models.CASCADE,
+    offered_by = models.ForeignKey('recruiter.RecruiterProfile', related_name="offered_by", on_delete=models.CASCADE,
                                    null=True, blank=True)
-    accepted = models.CharField(max_length=12, choices=OFFER_STATUS, default="pending")
+    status = models.CharField(max_length=12, choices=OFFER_STATUS, default="pending")
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"offer from {self.company} to {self.offered_to}"
+        return f"Job Offer from {self.company} to {self.offered_to} - status {self.status}"

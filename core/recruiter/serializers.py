@@ -72,5 +72,4 @@ class CompaniesAndRolesSerializer(serializers.ModelSerializer):
         return None
     class Meta:
         model = Company
-        fields = ["id", "name", "slug", "headline", "about", "roles",
-                  "location", "verified", "is_completed"]
+        fields = ["id", "name", "slug", "headline", "about", "roles", "location", "verified", "is_completed"]

@@ -11,7 +11,7 @@ from recruiter.serializers import RecruiterProfileSerializer, TechiePoolSerializ
 from techie.models import TechieProfile
 from techie.serializers import CompanySearchSerializer, CompanySerializer
 from accounts.utils import validate_url, validate_email, validate_image
-from accounts.models import Roles
+from accounts.models import Roles, Offer
 
 # Create your views here.
 
@@ -549,8 +549,6 @@ class RecruiterCompaniesAndRoles(APIView):
                 return Response({"detail": f"You are not allowed to view this page"},
                                 status=status.HTTP_401_UNAUTHORIZED)
             recruiter = RecruiterProfile.objects.get(user=request.user)
-
-            print(recruiter.companies.all(), "--------------")
             serialized = CompaniesAndRolesSerializer(instance=recruiter.companies.all(), many=True).data
             return Response({"detail": serialized})
         except (Exception,) as err:
@@ -565,15 +563,52 @@ class OfferView(APIView):
             if request.user.user_role != "recruiter":
                 return Response({"detail": f"You are not allowed to make offer as a Techie."},
                                 status=status.HTTP_400_BAD_REQUEST)
-            recruiter = RecruiterProfile.objects.get(user=request.user)
+            recruiter = request.user.recruiterprofile
             if recruiter.verified is False or recruiter.is_completed is False:
                 return Response({"detail": f"Your are not a complete recruiter. Get verified and Complete your "
                                            f"Recruiter profile."}, status=status.HTTP_400_BAD_REQUEST)
 
+            company_id = request.data.get('company_id', None)
+            if company_id is None:
+                return Response({"detail": f"'company_id' is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-            return Response({"detail": f""})
+            role_id = request.data.get('role_id', None)
+            if role_id is None:
+                return Response({"detail": f"'role_id' field iis required"}, status=status.HTTP_400_BAD_REQUEST)
+
+            techies_id = request.data.get('techies_id', None)
+            if techies_id is None:
+                return Response({"detail": f"'techies_id' field is required",}, status=status.HTTP_400_BAD_REQUEST)
+
+            # There should be an API that generates the list of a recruiter's verified companies.
+            # check if this recruiter exists in this companies list of recruiter.
+            # get company's role with the role_id passed
+            # check if role is available to be offered to Techies.
+            # There needs to be an API that give / generates the roles present within a company
+
+            offered_to = TechieProfile.objects.get(user__id=techies_id)
+            company = recruiter.companies.get(id=company_id, verified=True)  # check and get the company-id related to the recruiter
+            role = Roles.objects.get(id=role_id, company=company, is_available=True)  # check and get the role-id related to the company
+            offer, success = Offer.objects.get_or_create(company=company, role=role, offered_to=offered_to, offered_by=recruiter)
+
+            if not success:
+                return Response({"detail": f"An offer for this role has already been sent to '{offered_to.user.email}'."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if offer is not None:
+                # Send notification to both recruiter and techie about the recent offer.
+                return Response({"detail": f"You have successfully offered a role at {company.name} to {offered_to.user.email}"})
+            return Response({"detail": f"Something went wrong, offer was not successful."}, status=status.HTTP_400_BAD_REQUEST)
+
         except (Exception,) as err:
             return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
 
+    # def get(self, request):
+    #     # To get all the roles this user has offered
+    #     try:
+    #
+    #     except (Exception, ) as err:
+    #         return Response({"detail": f"{err}"}, status=status.HTTP_400_BAD_REQUEST)
+
+# Create endpoint to also list out roles that has been offered by a currently logged in user.
 # Offer ends ...
 
