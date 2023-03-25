@@ -34,3 +34,14 @@ def validate_image(image):
 
     else:
         return True, "Success"
+
+def send_email(**kwargs):
+    """
+        This function should contain logics for send mail to any user.
+        It receives 'named' parameters as **kwargs.
+    """
+    try:
+
+        return True, f""
+    except (Exception, ) as err:
+        return False, f"{err}"
